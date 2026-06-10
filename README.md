@@ -1,36 +1,116 @@
-# Easy Recibos
+# 📄 Easy Recibos
 
-Uma ferramenta moderna, de alto desempenho e visualmente sofisticada para geração e exportação de recibos e documentos corporativos, construída sob os princípios do design Neo-Brutalista.
+Uma plataforma moderna para criação, personalização e exportação de recibos, faturas, propostas comerciais, contratos e ordens de serviço.
 
-## Funcionalidades Principais
+Desenvolvido com foco em produtividade, experiência do usuário e design Neo-Brutalista, o Easy Recibos permite gerar documentos profissionais em poucos minutos através de uma interface intuitiva e visualmente sofisticada.
 
-*   **Identidade Neo-Brutalista Premium:** Interface atraente focada na alta conversão, usando tipografia forte (Cabinet Grotesk / Satoshi), bordas delineadas, sombras duras e cores vibrantes, entregando uma experiência "SaaS Premium" aos usuários.
-*   **Múltiplos Modelos Dinâmicos de Documento:** Geração de Layouts PDF inteligentes adaptados ao tipo de documento escolhido pelo usuário:
-    *   **Recibos & Notas de Serviço:** Layout direto ao ponto.
-    *   **Faturas & Ordens de Serviço:** Layout corporativo de dupla coluna, destacando dados financeiros e prazos.
-    *   **Propostas Comerciais, Orçamentos & Contratos:** Layout focado na leitura, com forte presença de blocos textuais e rodapés adaptativos com assinaturas duplas (Contratante e Contratada).
-*   **Exportação PDF Nativa:** Tecnologia de conversão HTML-para-PDF no frontend utilizando `html2canvas` e `jsPDF`, garantindo que o documento visualizado na tela seja o documento salvo localmente de maneira fidedigna.
-*   **Integração Iconify:** Repositório vasto de ícones em vetor de alta qualidade (`fluent-emoji-flat`, `ph`), adicionando expressividade para áreas chaves do formulário (Moeda, Condição de Pagamento, etc).
-*   **Preview em Tempo Real:** Edite no formulário, veja no Preview. Qualquer campo alterado atualiza imediatamente a representação gráfica do documento PDF a ser gerado.
-*   **Responsividade "Mobile-First":** Uma Home-Page incrivelmente adaptada a todos os dispositivos, garantindo que o botão principal de conversão esteja sempre à mão, independentemente do acesso (Desktop, Tablet, Celular).
+## ✨ Principais Funcionalidades
 
-## Como Executar o Projeto
+* Geração de recibos profissionais
+* Criação de faturas e ordens de serviço
+* Emissão de propostas comerciais
+* Modelos de contratos personalizados
+* Visualização em tempo real
+* Exportação para PDF
+* Interface moderna e responsiva
+* Experiência otimizada para desktop e dispositivos móveis
+* Sistema de layouts adaptativos conforme o tipo de documento
 
-Certifique-se de ter o Node.js instalado.
+## 🎨 Design Neo-Brutalista
 
-```bash
-# 1. Instale as dependências
+O projeto foi construído utilizando princípios modernos de Neo-Brutalismo, combinando:
+
+* Tipografia forte e marcante
+* Bordas destacadas
+* Sombras rígidas
+* Cores vibrantes
+* Interface premium inspirada em produtos SaaS modernos
+
+O resultado é uma experiência visual diferenciada que transmite profissionalismo e personalidade.
+
+## 📄 Tipos de Documentos Suportados
+
+### Recibos e Notas de Serviço
+
+Layouts simples e objetivos para comprovação de pagamentos e prestação de serviços.
+
+### Faturas e Ordens de Serviço
+
+Estrutura corporativa com destaque para valores, condições e informações financeiras.
+
+### Propostas Comerciais
+
+Modelos focados em apresentação profissional de serviços e produtos.
+
+### Contratos
+
+Estruturas completas com áreas de assinatura e blocos textuais organizados.
+
+## 🚀 Tecnologias Utilizadas
+
+### Frontend
+
+* React
+* Vite
+
+### Estilização
+
+* Tailwind CSS
+* CSS Customizado
+
+### Geração de PDF
+
+* jsPDF
+* html2canvas
+
+### Ícones
+
+* Iconify
+
+## ⚙️ Como Executar o Projeto
+
+### Instalar Dependências
+
+```bash id="bq2h7z"
 npm install
-
-# 2. Inicie o servidor de desenvolvimento
-npm run dev
-
-# 3. Abra no navegador usando o localhost gerado (ex: http://localhost:5173/)
 ```
 
-## Stack Tecnológica
+### Executar Ambiente de Desenvolvimento
 
-*   **Framework:** React (Vite)
-*   **Estilização:** Tailwind CSS (Customizado com CSS puro para micro-interações)
-*   **Ícones:** @iconify/react
-*   **Geração de PDF:** jsPDF + html2canvas
+```bash id="qzv8jm"
+npm run dev
+```
+
+A aplicação estará disponível em:
+
+```bash id="2l1u5m"
+http://localhost:5173
+```
+
+## 📦 Build para Produção
+
+```bash id="yvrv45"
+npm run build
+```
+
+## 🎯 Destaques Técnicos
+
+* Atualização instantânea do preview
+* Conversão HTML para PDF no navegador
+* Arquitetura leve e performática
+* Interface totalmente responsiva
+* Componentes reutilizáveis
+* Experiência otimizada para produtividade
+
+## 💼 Casos de Uso
+
+* Prestadores de serviço
+* Freelancers
+* Pequenas empresas
+* Agências
+* Consultores
+* Profissionais autônomos
+
+---
+
+Desenvolvido por **Kayohan Costa** 🚀
