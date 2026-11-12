@@ -1,18 +1,18 @@
-import { ArrowRight, PencilLine, Search } from 'lucide-react'
+import { ArrowRight, FileSignature, LayoutGrid, PencilLine, Search } from 'lucide-react'
 import { useState } from 'react'
-import { categories, templates } from './templates.js'
+import { categories, isContract, templates } from './templates.js'
 
 const normalize = value => value.toLocaleLowerCase('pt-BR').normalize('NFD').replace(/\p{Diacritic}/gu, '')
-
-export default function TemplateLibrary({ onSelect, onResume, saved, current }) {
+export default function TemplateLibrary({ showContracts, onSelect, onResume, saved, current }) {
   const [filter, setFilter] = useState('todos')
   const [search, setSearch] = useState('')
+  const visibleTemplates = templates.filter(template => isContract(template) === showContracts)
   const terms = normalize(search).trim().split(/\s+/).filter(Boolean)
   const visibleCategories = categories
     .filter(({ id }) => filter === 'todos' || filter === id)
     .map(category => ({
       ...category,
-      models: templates.filter(template =>
+      models: visibleTemplates.filter(template =>
         template.category === category.id && terms.every(term =>
           normalize(`${template.name} ${template.description} ${category.label}`).includes(term))),
     }))
@@ -22,12 +22,22 @@ export default function TemplateLibrary({ onSelect, onResume, saved, current }) 
     <main className="library layout-width" id="main-content">
       <div className="library-intro">
         <div>
-          <h1 tabIndex={-1}>Modelos de documentos</h1>
-          <p>Escolha um modelo, preencha os dados e baixe seu documento em PDF.</p>
+          <h1 tabIndex={-1}>{showContracts ? 'Modelos de contrato' : 'Modelos de documentos'}</h1>
+          <p>{showContracts
+            ? 'Escolha um contrato, preencha os dados e baixe o PDF.'
+            : 'Escolha um modelo, preencha os dados e baixe seu documento em PDF.'}</p>
         </div>
         {saved && <button className="button" onClick={onResume}><PencilLine size={16} aria-hidden="true" /> Continuar rascunho</button>}
       </div>
 
+      <nav className="library-menu" aria-label="Tipos de modelo">
+        <a href="#modelos" aria-current={!showContracts ? 'page' : undefined}>
+          <LayoutGrid size={17} aria-hidden="true" /> Documentos
+        </a>
+        <a href="#contratos" className="contracts-menu-item" aria-current={showContracts ? 'page' : undefined}>
+          <FileSignature size={17} aria-hidden="true" /> Contratos
+        </a>
+      </nav>
       <div className="model-filters">
         <div className="model-search">
           <Search size={18} aria-hidden="true" />

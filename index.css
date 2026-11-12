@@ -51,7 +51,12 @@ h1[tabindex]:focus, h2[tabindex]:focus, .preview-column:focus { outline: none; }
 }
 .library h1 { font-size: clamp(34px, 5vw, 52px); line-height: 1.08; letter-spacing: -.062em; }
 .library-intro p { margin-top: 14px; font-size: 16px; color: var(--muted); }
-.model-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: 28px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+.library-menu { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+.library-menu a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 13px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--muted); font-weight: 600; }
+.library-menu a:hover, .library-menu a[aria-current] { color: var(--accent-dark); background: var(--accent-soft); }
+.library-menu .contracts-menu-item { border-color: var(--input-line); color: var(--accent-dark); }
+.library-menu .contracts-menu-item[aria-current] { border-color: var(--accent); color: white; background: var(--accent); }
+.model-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: 14px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
 .model-search { position: relative; flex: 1 1 265px; max-width: 390px; }
 .model-search svg { position: absolute; top: 13px; left: 12px; color: var(--muted); pointer-events: none; }
 .model-search input { width: 100%; min-height: 44px; padding: 9px 12px 9px 39px; border: 1px solid var(--input-line); border-radius: 8px; background: var(--surface); font-size: 16px; }

@@ -6,7 +6,7 @@ import ReceiptPreview from './ReceiptPreview.jsx'
 import PreviewPane from './src/PreviewPane.jsx'
 import TemplateLibrary from './src/TemplateLibrary.jsx'
 import useDraft from './src/useDraft.js'
-import { documentDetails, itemTotal, templates } from './src/templates.js'
+import { documentDetails, isContract, itemTotal, templates } from './src/templates.js'
 
 const sections = [
   { id: 'empresa', name: 'Empresa', icon: Building2, title: 'Dados da empresa', description: 'Identifique quem emite o documento.' },
@@ -16,7 +16,10 @@ const sections = [
 ]
 
 const focusPreview = () => document.getElementById('preview-area')?.focus()
-const pageFromLocation = () => window.location.hash === '#editor' ? 'editor' : 'modelos'
+function pageFromLocation() {
+  const hash = window.location.hash.slice(1)
+  return ['editor', 'contratos'].includes(hash) ? hash : 'modelos'
+}
 
 export default function App() {
   const [page, setPage] = useState(pageFromLocation)
@@ -32,6 +35,7 @@ export default function App() {
   const focusOnSectionChange = useRef(false)
   const section = sections[active]
   const template = templates.find(({ id }) => id === draft.receipt.type) ?? templates[0]
+  const libraryPage = isContract(template) ? 'contratos' : 'modelos'
   const details = documentDetails[template.id]
   const sectionTitle = details
     ? { empresa: details.party[0], cliente: details.party[1], itens: details.items }[section.id] ?? section.title
@@ -111,8 +115,8 @@ export default function App() {
         <main className="editor layout-width" id="main-content">
           <div className="editor-heading">
             <div>
-              <a className="back-link" href="#modelos" onClick={event => { event.preventDefault(); navigate('modelos') }}>
-                <ArrowLeft size={15} aria-hidden="true" /> Modelos
+              <a className="back-link" href={`#${libraryPage}`}>
+                <ArrowLeft size={15} aria-hidden="true" /> {libraryPage === 'contratos' ? 'Contratos' : 'Modelos'}
               </a>
               <h1 tabIndex={-1}>{template.name}</h1>
               <p className="draft-status" role="status">
@@ -162,7 +166,8 @@ export default function App() {
             </div>
           </div>
         </main>
-      ) : <TemplateLibrary onSelect={selectTemplate} onResume={() => navigate('editor')} saved={saved} current={draft.receipt.type} />}
+      ) : <TemplateLibrary key={page} showContracts={page === 'contratos'} onSelect={selectTemplate}
+        onResume={() => navigate('editor')} saved={saved} current={draft.receipt.type} />}
     </>
   )
 }

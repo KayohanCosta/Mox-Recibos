@@ -10,7 +10,7 @@ Escolha um modelo na biblioteca, preencha os dados no editor e exporte o documen
 * Criação de faturas e ordens de serviço
 * Emissão de propostas comerciais
 * Modelos de contratos personalizados
-* Biblioteca com 102 modelos em 15 categorias, com busca e filtro por categoria
+* Biblioteca com 102 modelos em 15 categorias, submenu de contratos, busca e filtro por categoria
 * Visualização em tempo real com zoom e modo expandido
 * Salvamento automático do rascunho e do logo no navegador
 * Exportação para PDF

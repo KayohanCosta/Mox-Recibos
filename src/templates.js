@@ -32,6 +32,7 @@ export const templates = [
 
 export const documentDetails = Object.fromEntries(expandedTemplates.map(({ id, details }) => [id, details]))
 export const templateById = Object.fromEntries(templates.map(template => [template.id, template]))
+export const isContract = template => template.id === 'contrato' || Boolean(template.details?.contract)
 
 export const newItem = (id) => ({ id, description: '', quantity: '1', unit: 'un', unitPrice: '' })
 export const itemTotal = ({ quantity, unitPrice }) => (parseFloat(quantity) || 0) * (parseFloat(unitPrice) || 0)
