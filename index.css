@@ -156,7 +156,8 @@ button:disabled { cursor: default; opacity: .6; }
 }
 .action-help-start .action-help-text { right: auto; left: 0; }
 .action-help:has(> .quantity-details) .action-help-text { top: 38px; }
-.suggest-button { color: var(--accent-dark); }
+.suggest-button { border-color: var(--accent); color: var(--accent-dark); background: var(--accent-soft); }
+.suggest-button:hover { color: white; background: var(--accent); }
 .suggestion-review { display: grid; gap: 10px; padding: 13px; border: 1px solid var(--line); border-radius: 9px; background: var(--accent-soft); }
 .suggestion-review h4 { font: 650 14px/1.4 var(--ui-font); }
 .suggestion-review > p, .suggestion-feedback { color: var(--muted); font-size: 12px; }

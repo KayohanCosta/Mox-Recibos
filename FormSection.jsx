@@ -218,6 +218,13 @@ function ClauseFields({ receipt, update }) {
 
   return (
     <>
+      <ClauseSuggestions key={receipt.type} type={receipt.type} onInsert={suggestions => {
+        const additions = suggestions.map(clause => ({ ...clause, id: crypto.randomUUID() }))
+        changeClauses(current => [
+          ...current,
+          ...additions.filter(clause => !current.some(existing => existing.title.trim() === clause.title && existing.text.trim() === clause.text)),
+        ])
+      }} />
       {clauses.map((clause, index) => {
         const change = field => value => changeClauses(current => current.map(row => row.id === clause.id ? { ...row, [field]: value } : row))
         return (
@@ -243,13 +250,6 @@ function ClauseFields({ receipt, update }) {
           changeClauses(current => [...current, { id, title: '', text: '' }])
         }}><Plus size={16} aria-hidden="true" /> Adicionar cláusula</button>
       </ActionHelp>
-      <ClauseSuggestions key={receipt.type} type={receipt.type} onInsert={suggestions => {
-        const additions = suggestions.map(clause => ({ ...clause, id: crypto.randomUUID() }))
-        changeClauses(current => [
-          ...current,
-          ...additions.filter(clause => !current.some(existing => existing.title.trim() === clause.title && existing.text.trim() === clause.text)),
-        ])
-      }} />
       <Field label="Condições gerais" type="textarea" value={receipt.notes}
         onChange={notes => update(current => ({ ...current, notes }))}
         placeholder="Informações adicionais acordadas entre as partes" />

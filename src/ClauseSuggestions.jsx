@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import { FilePlus2, LoaderCircle } from 'lucide-react'
+import { LoaderCircle, Sparkles } from 'lucide-react'
 import ActionHelp from './ActionHelp.jsx'
 
 export default function ClauseSuggestions({ type, onInsert }) {
@@ -50,16 +50,16 @@ export default function ClauseSuggestions({ type, onInsert }) {
 
   return (
     <>
-      <ActionHelp label="Sugerir cláusulas" help="Prepara sugestões para este modelo. Você escolhe quais inserir e pode editar o texto.">
+      <ActionHelp label="Criar com IA" help="Prepara sugestões para este modelo. Você escolhe quais inserir e pode editar o texto.">
         <button ref={trigger} type="button" className="button suggest-button" onClick={suggest}
           disabled={phase === 'loading' || phase === 'review'}>
-          {phase === 'loading' ? <LoaderCircle size={16} className="spinner" aria-hidden="true" /> : <FilePlus2 size={16} aria-hidden="true" />}
-          {phase === 'loading' ? 'Preparando sugestões…' : 'Sugerir cláusulas'}
+          {phase === 'loading' ? <LoaderCircle size={16} className="spinner" aria-hidden="true" /> : <Sparkles size={16} aria-hidden="true" />}
+          {phase === 'loading' ? 'Preparando sugestões…' : 'Criar com IA'}
         </button>
       </ActionHelp>
       <div className="sr-only" role="status">{phase === 'loading' ? 'Preparando sugestões de cláusulas.' : ''}</div>
       {phase === 'error' && <p className="field-error" role="alert">Não foi possível preparar as sugestões. Tente novamente em instantes.</p>}
-      {phase === 'inserted' && <p className="suggestion-feedback" role="status">Sugestões adicionadas. Você pode editar as cláusulas acima.</p>}
+      {phase === 'inserted' && <p className="suggestion-feedback" role="status">Sugestões adicionadas. Você pode editar as cláusulas abaixo.</p>}
       {phase === 'review' && (
         <section className="suggestion-review" aria-labelledby={headingId}>
           <h4 id={headingId} ref={heading} tabIndex={-1}>Revise as sugestões</h4>

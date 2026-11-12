@@ -77,7 +77,7 @@ npm install
 npm run dev
 ```
 
-O editor inclui a ação **Sugerir cláusulas**. Ela envia ao servidor somente o identificador público do modelo e abre uma seleção para revisão antes de inserir texto no contrato. A prévia e a edição manual funcionam no navegador.
+O editor inclui a ação **Criar com IA** na seção **Cláusulas e condições**. Ela envia ao servidor somente o identificador público do modelo e abre uma seleção para revisão antes de inserir texto no contrato. A prévia e a edição manual funcionam no navegador.
 
 ### Configuração do servidor
 
