@@ -77,11 +77,11 @@ npm install
 npm run dev
 ```
 
-O editor inclui a ação **Criar com IA** na seção **Cláusulas e condições**. Ela envia ao servidor somente o identificador público do modelo e abre uma seleção para revisão antes de inserir texto no contrato. A prévia e a edição manual funcionam no navegador.
+Na seção **Cláusulas e condições**, use **Criar com IA** para descrever o acordo e gerar um rascunho de escopo e cláusulas. O servidor recebe apenas o identificador público do modelo e o resumo digitado nessa ação. Você escolhe quais trechos inserir e pode editá-los antes de exportar.
 
 ### Configuração do servidor
 
-Para geração local, o responsável pelo projeto pode definir `OPENCODE_API_KEY` em `.env.local`. O servidor de desenvolvimento usa a CLI oficial do OpenCode. Em produção, a função `/api/clauses` usa um servidor OpenCode v2 dedicado, acessível por HTTPS, com `OPENCODE_SERVER_URL` e `OPENCODE_PASSWORD` configurados como variáveis privadas do projeto. A credencial do provedor fica no processo OpenCode. O modelo selecionado é `opencode/minimax-m3.1-flash-free`. Quando o serviço não está disponível, o editor apresenta textos-base editáveis.
+Para geração local, o responsável pelo projeto pode definir `OPENCODE_API_KEY` em `.env.local`. O servidor de desenvolvimento inicia uma instância local do OpenCode e usa sua rota oficial de geração sem sessão. Em produção, a função `/api/clauses` usa um servidor OpenCode v2 dedicado, acessível por HTTPS, com `OPENCODE_SERVER_URL` e `OPENCODE_PASSWORD` configurados como variáveis privadas do projeto. A credencial do provedor fica no processo OpenCode. O modelo selecionado é `opencode/minimax-m3.1-flash-free`. Quando o serviço ou a cota estão indisponíveis, o editor mantém o resumo e informa que o rascunho não foi gerado.
 
 A aplicação estará disponível em:
 

@@ -210,7 +210,7 @@ function ItemsFields({ items, subtotal, currency, update, details, contract }) {
   )
 }
 
-function ClauseFields({ receipt, update }) {
+function ClauseFields({ receipt, update, onInsert }) {
   const addButtonId = useId()
   const [addedId, setAddedId] = useState(null)
   const clauses = receipt.clauses ?? []
@@ -218,13 +218,7 @@ function ClauseFields({ receipt, update }) {
 
   return (
     <>
-      <ClauseSuggestions key={receipt.type} type={receipt.type} onInsert={suggestions => {
-        const additions = suggestions.map(clause => ({ ...clause, id: crypto.randomUUID() }))
-        changeClauses(current => [
-          ...current,
-          ...additions.filter(clause => !current.some(existing => existing.title.trim() === clause.title && existing.text.trim() === clause.text)),
-        ])
-      }} />
+      <ClauseSuggestions key={receipt.type} type={receipt.type} onInsert={onInsert} />
       {clauses.map((clause, index) => {
         const change = field => value => changeClauses(current => current.map(row => row.id === clause.id ? { ...row, [field]: value } : row))
         return (
@@ -257,9 +251,29 @@ function ClauseFields({ receipt, update }) {
   )
 }
 
-export default function FormSection({ activeTab, draft, update, subtotal, contract }) {
+export default function FormSection({ activeTab, draft, update, updateDraft, subtotal, contract }) {
   const change = section => field => value => update(section, current => ({ ...current, [field]: value }))
   const details = documentDetails[draft.receipt.type]
+
+  function insertContractDraft({ scope, clauses }) {
+    updateDraft(current => {
+      if (current.receipt.type !== draft.receipt.type) return current
+      const savedClauses = current.receipt.clauses ?? []
+      const newClauses = clauses
+        .filter(clause => !savedClauses.some(entry => entry.title.trim() === clause.title && entry.text.trim() === clause.text))
+        .map(clause => ({ ...clause, id: crypto.randomUUID() }))
+      const newScope = [...new Set(scope)]
+        .filter(description => !current.items.some(item => item.description.trim() === description))
+        .map(description => ({ ...newItem(crypto.randomUUID()), description }))
+      const existingItems = newScope.length ? current.items.filter(item =>
+        item.description.trim() || item.unitPrice !== '' || String(item.quantity) !== '1' || item.unit !== 'un') : current.items
+      return {
+        ...current,
+        items: [...existingItems, ...newScope],
+        receipt: { ...current.receipt, clauses: [...savedClauses, ...newClauses] },
+      }
+    })
+  }
   return (
     <div className="form-fields" key={activeTab}>
       {activeTab === 'empresa' && <PartyFields party={draft.company} change={change('company')} company contextual={Boolean(details)} />}
@@ -274,7 +288,7 @@ export default function FormSection({ activeTab, draft, update, subtotal, contra
           </section>
           <section className="contract-fields" aria-label="Cláusulas e condições">
             <h3>Cláusulas e condições</h3>
-            <ClauseFields receipt={draft.receipt} update={next => update('receipt', next)} />
+            <ClauseFields receipt={draft.receipt} update={next => update('receipt', next)} onInsert={insertContractDraft} />
           </section>
         </>
       ) : <ItemsFields items={draft.items} currency={draft.receipt.currency} subtotal={subtotal} details={details}

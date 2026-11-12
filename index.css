@@ -161,6 +161,8 @@ button:disabled { cursor: default; opacity: .6; }
 .suggestion-review { display: grid; gap: 10px; padding: 13px; border: 1px solid var(--line); border-radius: 9px; background: var(--accent-soft); }
 .suggestion-review h4 { font: 650 14px/1.4 var(--ui-font); }
 .suggestion-review > p, .suggestion-feedback { color: var(--muted); font-size: 12px; }
+.suggestion-review > .field-error { color: var(--danger); }
+.brief-optional { margin-left: 4px; color: var(--muted); font-size: 12px; font-weight: 450; }
 .suggestion-list { display: grid; gap: 8px; }
 .suggestion-option {
   display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 9px; align-items: start;

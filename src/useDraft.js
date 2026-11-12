@@ -49,10 +49,8 @@ export default function useDraft() {
     return () => { cancelled = true }
   }, [])
 
-  async function update(section, next) {
-    const current = latest.current
-    const value = typeof next === 'function' ? next(current[section]) : next
-    const updated = { ...current, [section]: value }
+  async function updateDraft(transform) {
+    const updated = transform(latest.current)
     const version = ++revision.current
     latest.current = updated
     setDraft(updated)
@@ -65,5 +63,12 @@ export default function useDraft() {
     }
   }
 
-  return { draft, status, update }
+  function update(section, next) {
+    return updateDraft(current => ({
+      ...current,
+      [section]: typeof next === 'function' ? next(current[section]) : next,
+    }))
+  }
+
+  return { draft, status, update, updateDraft }
 }

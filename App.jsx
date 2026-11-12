@@ -27,7 +27,7 @@ export default function App() {
   const [mobilePane, setMobilePane] = useState('edit')
   const [generation, setGeneration] = useState('idle')
   const [exportDocument, setExportDocument] = useState(null)
-  const { draft, status, update } = useDraft()
+  const { draft, status, update, updateDraft } = useDraft()
   const saved = status === 'saved'
   const capture = useRef(null)
   const editor = page === 'editor'
@@ -187,7 +187,8 @@ export default function App() {
                 <div className="section-content">
                   <h2 id="section-heading" tabIndex={-1} ref={sectionHeading}>{sectionTitle}</h2>
                   {sectionTitle === section.title && <p>{section.description}</p>}
-                  <FormSection activeTab={section.id} draft={draft} update={update} subtotal={subtotal} contract={contract} />
+                  <FormSection activeTab={section.id} draft={draft} update={update} updateDraft={updateDraft}
+                    subtotal={subtotal} contract={contract} />
                 </div>
                 <div className="section-footer">
                   {active > 0 && (clausesSection ? <ActionHelp className="action-help-start" label="Voltar"
