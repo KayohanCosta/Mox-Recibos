@@ -1,5 +1,6 @@
 import { useId, useState } from 'react'
 import { ImagePlus, Plus, Trash2 } from 'lucide-react'
+import ActionHelp from './src/ActionHelp.jsx'
 import { categories, documentDetails, itemTotal, money, newItem, templates } from './src/templates.js'
 
 const paymentOptions = [
@@ -152,6 +153,10 @@ function ItemsFields({ items, subtotal, currency, update, details, contract }) {
   const addButtonId = useId()
   const showPrices = !details || Boolean(details.total)
   const entryName = contract ? 'Entrega' : 'Item'
+  const addEntry = <button className="button" id={addButtonId}
+    onClick={() => update(current => [...current, newItem(crypto.randomUUID())])}>
+    <Plus size={16} aria-hidden="true" /> Adicionar {entryName.toLowerCase()}
+  </button>
   return (
     <>
       {items.map((item, index) => {
@@ -160,24 +165,32 @@ function ItemsFields({ items, subtotal, currency, update, details, contract }) {
           <Field label="Quantidade" type="number" min="0" value={item.quantity} onChange={change('quantity')} validate={amountError} />
           <Field label="Unidade" value={item.unit} onChange={change('unit')} options={unitOptions} />
         </>
+        const removeLabel = `Remover ${entryName.toLowerCase()} ${index + 1}`
+        const removeEntry = <button className={contract ? 'icon-button' : 'icon-button remove-item'} aria-label={removeLabel}
+          onClick={() => {
+            update(current => current.filter(row => row.id !== item.id))
+            document.getElementById(addButtonId)?.focus()
+          }}><Trash2 size={17} aria-hidden="true" /></button>
         return (
           <fieldset className="item-fields" key={item.id}>
             <legend>{entryName} {index + 1}</legend>
-            {items.length > 1 && <button className="icon-button remove-item" aria-label={`Remover ${entryName.toLowerCase()} ${index + 1}`}
-              onClick={() => {
-                update(current => current.filter(row => row.id !== item.id))
-                document.getElementById(addButtonId)?.focus()
-              }}><Trash2 size={17} aria-hidden="true" /></button>}
+            {items.length > 1 && (contract ? (
+              <ActionHelp className="remove-item" label={removeLabel} help="Retira esta entrega do escopo e recalcula o total do contrato.">
+                {removeEntry}
+              </ActionHelp>
+            ) : removeEntry)}
             <Field label={contract ? 'Escopo ou entrega' : 'Descrição'} type={contract ? 'textarea' : 'text'}
               value={item.description} onChange={change('description')}
               placeholder={contract ? 'Descreva o que foi combinado' : details?.items ?? 'Serviço ou produto'} />
             {contract ? <>
               <Field label={`Valor unitário (${currency}) · opcional`} type="number" min="0" value={item.unitPrice}
                 onChange={change('unitPrice')} validate={amountError} />
-              <details className="quantity-details">
-                <summary>Quantidade e unidade</summary>
-                <div className="field-row">{quantityFields}</div>
-              </details>
+              <ActionHelp label="Quantidade e unidade" help="Mostra os campos para definir a quantidade e a unidade da entrega. Se houver valor unitário, a quantidade entra no cálculo do subtotal.">
+                <details className="quantity-details">
+                  <summary>Quantidade e unidade</summary>
+                  <div className="field-row">{quantityFields}</div>
+                </details>
+              </ActionHelp>
             </> : <div className={showPrices ? 'field-row item-row' : 'field-row'}>
               {quantityFields}
               {showPrices && <Field label={`Valor (${currency})`} type="number" min="0" value={item.unitPrice} onChange={change('unitPrice')} validate={amountError} />}
@@ -186,8 +199,9 @@ function ItemsFields({ items, subtotal, currency, update, details, contract }) {
           </fieldset>
         )
       })}
-      <button className="button" id={addButtonId}
-        onClick={() => update(current => [...current, newItem(crypto.randomUUID())])}><Plus size={16} aria-hidden="true" /> Adicionar {entryName.toLowerCase()}</button>
+      {contract ? <ActionHelp label="Adicionar entrega" help="Cria um campo para descrever outra entrega do contrato e, se necessário, informar seu valor.">
+        {addEntry}
+      </ActionHelp> : addEntry}
       {showPrices && (!contract || items.some(item => item.unitPrice !== '')) && <div className="grand-total">
         <span>{contract ? 'Total do contrato' : details?.total ?? 'Total do documento'}</span><strong>{money(subtotal, currency)}</strong>
       </div>}
@@ -208,22 +222,26 @@ function ClauseFields({ receipt, update }) {
         return (
           <fieldset className="item-fields" key={clause.id}>
             <legend>Cláusula {index + 1}</legend>
-            <button type="button" className="icon-button remove-item" aria-label={`Remover cláusula ${index + 1}`}
-              onClick={() => {
-                changeClauses(current => current.filter(row => row.id !== clause.id))
-                document.getElementById(addButtonId)?.focus()
-              }}><Trash2 size={17} aria-hidden="true" /></button>
+            <ActionHelp className="remove-item" label={`Remover cláusula ${index + 1}`} help="Exclui esta cláusula do contrato e renumera as demais.">
+              <button type="button" className="icon-button" aria-label={`Remover cláusula ${index + 1}`}
+                onClick={() => {
+                  changeClauses(current => current.filter(row => row.id !== clause.id))
+                  document.getElementById(addButtonId)?.focus()
+                }}><Trash2 size={17} aria-hidden="true" /></button>
+            </ActionHelp>
             <Field label="Título" value={clause.title} onChange={change('title')} autoFocus={addedId === clause.id}
               placeholder="Ex.: Prazos de entrega" />
             <Field label="Texto da cláusula" type="textarea" value={clause.text} onChange={change('text')} />
           </fieldset>
         )
       })}
-      <button type="button" className="button" id={addButtonId} onClick={() => {
-        const id = crypto.randomUUID()
-        setAddedId(id)
-        changeClauses(current => [...current, { id, title: '', text: '' }])
-      }}><Plus size={16} aria-hidden="true" /> Adicionar cláusula</button>
+      <ActionHelp label="Adicionar cláusula" help="Cria uma cláusula numerada com campos para título e texto. Ela aparece na prévia e no PDF quando preenchida.">
+        <button type="button" className="button" id={addButtonId} onClick={() => {
+          const id = crypto.randomUUID()
+          setAddedId(id)
+          changeClauses(current => [...current, { id, title: '', text: '' }])
+        }}><Plus size={16} aria-hidden="true" /> Adicionar cláusula</button>
+      </ActionHelp>
       <Field label="Condições gerais" type="textarea" value={receipt.notes}
         onChange={notes => update(current => ({ ...current, notes }))}
         placeholder="Informações adicionais acordadas entre as partes" />

@@ -122,6 +122,23 @@ button:disabled { cursor: default; opacity: .6; }
 .contract-fields h3 { font: 650 14px/1.4 var(--ui-font); }
 .quantity-details summary { color: var(--accent-dark); font-size: 13px; font-weight: 600; cursor: pointer; }
 .quantity-details[open] .field-row { margin-top: 8px; }
+.action-help { position: relative; display: flex; align-items: flex-start; gap: 4px; }
+.action-help > .button, .action-help > .quantity-details { flex: 1; min-width: 0; }
+.action-help > .quantity-details > summary { min-height: 34px; padding-block: 7px; }
+.action-help-details { align-self: flex-start; }
+.action-help-details > summary {
+  display: grid; place-items: center; width: 30px; height: 34px;
+  border-radius: 6px; color: var(--accent); cursor: pointer; list-style: none;
+}
+.action-help-details > summary::-webkit-details-marker { display: none; }
+.action-help-details > summary:hover, .action-help-details[open] > summary { background: var(--accent-soft); }
+.action-help-text {
+  position: absolute; z-index: 2; top: calc(100% + 4px); right: 0; width: min(240px, calc(100vw - 70px));
+  padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface);
+  color: var(--ink); font-size: 12px; box-shadow: 0 4px 12px #1926201a;
+}
+.action-help-start .action-help-text { right: auto; left: 0; }
+.action-help:has(> .quantity-details) .action-help-text { top: 38px; }
 .field-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .field { min-width: 0; display: grid; gap: 5px; align-content: start; }
 .field label, .field-label { font-size: 13px; font-weight: 600; }
@@ -152,7 +169,7 @@ button:disabled { cursor: default; opacity: .6; }
 .item-total { font-size: 12px; color: var(--muted); }
 .grand-total { align-items: center; padding: 12px; border-radius: 7px; background: var(--accent-soft); }
 .grand-total strong { font-size: 17px; overflow-wrap: anywhere; }
-.section-footer { display: flex; gap: 8px; padding: 12px 23px; border-top: 1px solid var(--line); }
+.section-footer { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 23px; border-top: 1px solid var(--line); }
 .next-section { margin-left: auto; }
 
 .preview-column { position: sticky; top: 16px; min-width: 0; }

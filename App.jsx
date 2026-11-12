@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, ArrowRight, Building2, Check, ChevronRight, Download, FileText, List, LoaderCircle, UserRound } from 'lucide-react'
 import FormSection from './FormSection.jsx'
+import ActionHelp from './src/ActionHelp.jsx'
 import Navbar from './Navbar.jsx'
 import ReceiptPreview from './ReceiptPreview.jsx'
 import PreviewPane from './src/PreviewPane.jsx'
@@ -44,6 +45,11 @@ export default function App() {
   const subtotal = draft.items.reduce((sum, item) => sum + itemTotal(item), 0)
   const documentProps = { ...draft, subtotal }
   const sectionName = entry => contract && entry.id === 'itens' ? 'Cláusulas' : entry.name
+  const clausesSection = contract && section.id === 'itens'
+  const backButton = <button className="button" onClick={() => selectSection(active - 1)}><ArrowLeft size={16} aria-hidden="true" /> Voltar</button>
+  const previewButton = <button className={clausesSection ? 'button' : 'button next-section'} onClick={focusPreview}>
+    Ver prévia <ArrowRight size={16} aria-hidden="true" />
+  </button>
 
   useEffect(() => {
     const onHashChange = () => {
@@ -156,11 +162,13 @@ export default function App() {
                 <FormSection activeTab={section.id} draft={draft} update={update} subtotal={subtotal} contract={contract} />
               </div>
               <div className="section-footer">
-                {active > 0 && <button className="button" onClick={() => selectSection(active - 1)}><ArrowLeft size={16} aria-hidden="true" /> Voltar</button>}
+                {active > 0 && (clausesSection ? <ActionHelp className="action-help-start" label="Voltar"
+                  help="Volta para os dados do documento, onde você pode ajustar datas, moeda e condição de pagamento.">{backButton}</ActionHelp> : backButton)}
                 {active < sections.length - 1 && <button className="button next-section" onClick={() => selectSection(active + 1)}>
                   {sectionName(sections[active + 1])} <ChevronRight size={16} aria-hidden="true" />
                 </button>}
-                {active === sections.length - 1 && <button className="button next-section" onClick={focusPreview}>Ver prévia <ArrowRight size={16} aria-hidden="true" /></button>}
+                {active === sections.length - 1 && (clausesSection ? <ActionHelp className="next-section" label="Ver prévia"
+                  help="Leva à pré-visualização para conferir o contrato antes de baixar o PDF.">{previewButton}</ActionHelp> : previewButton)}
               </div>
             </section>
             <div className="preview-column">
