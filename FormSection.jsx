@@ -1,405 +1,298 @@
-import { useState, useRef, useEffect } from 'react'
-import { Icon } from '@iconify/react'
+import { useId, useState } from 'react'
+import { ImagePlus, Plus, Trash2 } from 'lucide-react'
+import ActionHelp from './src/ActionHelp.jsx'
+import ClauseSuggestions from './src/ClauseSuggestions.jsx'
+import { categories, documentDetails, itemTotal, money, newItem, templates } from './src/templates.js'
 
-const inputClass = "block w-full max-w-full min-w-0 box-border appearance-none px-4 py-3.5 rounded-xl bg-white border-2 border-black text-black font-satoshi text-[15px] font-medium transition-all duration-200 outline-none focus:translate-x-[-2px] focus:translate-y-[-2px] focus:shadow-[4px_4px_0px_0px_#000000]"
-const labelClass = "block mb-2 text-xs font-extrabold tracking-widest uppercase text-black font-cabinet"
-const cardClass = "bg-white rounded-2xl p-6 border-2 border-black shadow-[4px_4px_0px_0px_#000000] mb-4"
-const rowClass = "w-full flex flex-col md:flex-row gap-4 mb-4"
+const paymentOptions = [
+  ['pix', 'Pix'], ['transferencia', 'Transferência'], ['boleto', 'Boleto'],
+  ['cartao-credito', 'Cartão de crédito'], ['cartao-debito', 'Cartão de débito'],
+  ['dinheiro', 'Dinheiro'], ['cheque', 'Cheque'], ['a-prazo', 'A prazo'],
+]
+const currencyOptions = [['BRL', 'BRL · Real'], ['USD', 'USD · Dólar'], ['EUR', 'EUR · Euro']]
+const unitOptions = ['un', 'hr', 'dia', 'mês', 'kg', 'm²', 'km', 'proj'].map(unit => [unit, unit])
+const templateOptions = categories.map(category => ({
+  ...category,
+  options: templates.filter(template => template.category === category.id).map(({ id, name }) => [id, name]),
+}))
 
-function Field({ label, children }) {
+function Field({ label, value, onChange, type = 'text', placeholder, options, groups, validate, min, autoComplete, autoFocus }) {
+  const id = useId()
+  const [touched, setTouched] = useState(false)
+  const error = touched && validate?.(value)
+  const props = {
+    id, value, autoFocus, onChange: event => onChange(event.target.value), onBlur: () => setTouched(true),
+    'aria-invalid': error ? true : undefined,
+    'aria-describedby': error ? `${id}-error` : undefined,
+  }
+
   return (
-    <div className="mb-4 w-full flex-1 min-w-0">
-      <label className={labelClass}>{label}</label>
-      {children}
+    <div className="field">
+      <label htmlFor={id}>{label}</label>
+      {options || groups
+        ? <select {...props}>
+            {options?.map(([key, name]) => <option key={key} value={key}>{name}</option>)}
+            {groups?.map(group => (
+              <optgroup key={group.id} label={group.label}>
+                {group.options.map(([key, name]) => <option key={key} value={key}>{name}</option>)}
+              </optgroup>
+            ))}
+          </select>
+        : type === 'textarea'
+          ? <textarea {...props} rows={4} placeholder={placeholder} />
+          : <input {...props} type={type} placeholder={placeholder} min={min}
+              step={type === 'number' ? 'any' : undefined} autoComplete={autoComplete} />}
+      {error && <small className="field-error" id={`${id}-error`}>{error}</small>}
     </div>
   )
 }
 
-function Input({ value, onChange, placeholder, type = 'text' }) {
-  return (
-    <input
-      type={type}
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      placeholder={placeholder}
-      className={inputClass}
-    />
-  )
-}
+function LogoField({ logo, onChange }) {
+  const id = useId()
+  const [error, setError] = useState('')
+  const [reading, setReading] = useState(false)
 
-function Select({ value, onChange, options }) {
-  const [isOpen, setIsOpen] = useState(false)
-  const ref = useRef(null)
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (ref.current && !ref.current.contains(event.target)) {
-        setIsOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
-
-  const selectedOption = options.find(o => o.value === value) || options[0]
-
-  return (
-    <div className="relative w-full" ref={ref}>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className={`${inputClass} flex items-center justify-between cursor-pointer bg-white text-left`}
-      >
-        <div className="flex items-center gap-3">
-          {selectedOption.icon && <Icon icon={selectedOption.icon} className="text-[22px]" />}
-          <span className="text-black font-satoshi font-medium">{selectedOption.label}</span>
-        </div>
-        <Icon icon="mdi:chevron-down" className={`text-xl text-black transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-      </button>
-
-      {isOpen && (
-        <div className="absolute z-50 w-full mt-2 bg-white border-2 border-black rounded-xl shadow-[4px_4px_0px_0px_#000000] overflow-hidden max-h-[300px] overflow-y-auto">
-          {options.map(option => (
-            <div
-              key={option.value}
-              className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${value === option.value ? 'bg-[#1a73e8] text-white' : 'hover:bg-gray-100 text-black'}`}
-              onClick={() => {
-                onChange(option.value)
-                setIsOpen(false)
-              }}
-            >
-              {option.icon && <Icon icon={option.icon} className="text-[22px]" />}
-              <span className="font-satoshi font-medium">{option.label}</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ---- EMPRESA TAB ----
-function EmpresaTab({ company, setCompany }) {
-  const handleLogo = (e) => {
-    const file = e.target.files[0]
+  async function readLogo(event) {
+    const file = event.target.files[0]
+    event.target.value = ''
     if (!file) return
+    setError('')
+    if (!file.type.startsWith('image/') || file.size > 5 * 1024 * 1024) {
+      setError('Escolha uma imagem de até 5 MB.')
+      return
+    }
+
     const reader = new FileReader()
-    reader.onload = (ev) => {
-      setCompany(c => ({ ...c, logo: file, logoPreview: ev.target.result }))
+    setReading(true)
+    reader.onload = () => {
+      const image = new Image()
+      image.onload = () => {
+        onChange(reader.result)
+        setReading(false)
+      }
+      image.onerror = reader.onerror
+      image.src = reader.result
+    }
+    reader.onerror = () => {
+      setError('Não foi possível abrir a imagem. Escolha outro arquivo.')
+      setReading(false)
     }
     reader.readAsDataURL(file)
   }
 
   return (
-    <div>
-      <div className={cardClass}>
-        <p className={`${labelClass} mb-3`}>Logo da Empresa</p>
-        <div className={`border-2 border-dashed border-black rounded-xl p-6 text-center cursor-pointer relative ${company.logoPreview ? 'bg-transparent' : 'bg-gray-100'}`}>
-          {company.logoPreview ? (
-            <div>
-              <img src={company.logoPreview} alt="Logo" className="max-h-20 max-w-[200px] object-contain mx-auto block" />
-              <button 
-                onClick={() => setCompany(c => ({ ...c, logo: null, logoPreview: null }))}
-                className="mt-3 bg-black border-2 border-black text-white cursor-pointer text-xs px-3.5 py-1.5 rounded-lg font-bold shadow-[2px_2px_0px_0px_#ffe17c] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none transition-all"
-              >
-                Remover logo
-              </button>
-            </div>
-          ) : (
-            <div>
-              <div className="text-3xl mb-2">🏢</div>
-              <p className="text-black text-sm m-0 font-bold">Clique ou arraste o logo aqui</p>
-              <p className="text-gray-600 text-xs mt-1">PNG, JPG, SVG — max 5MB</p>
-            </div>
-          )}
-          <input type="file" accept="image/*" onChange={handleLogo} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
+    <div className="logo-field">
+      <span className="field-label">Logo da empresa <small>Opcional</small></span>
+      <div className="logo-box">
+        {logo
+          ? <img src={logo} alt="Logo da empresa" />
+          : <span className="upload-icon"><ImagePlus size={19} aria-hidden="true" /></span>}
+        <div className="logo-actions">
+          <input className="upload-input" id={id} type="file" accept="image/*" onChange={readLogo}
+            aria-label={logo ? 'Trocar imagem' : 'Selecionar imagem'} disabled={reading} />
+          <label htmlFor={id} className="upload-link">{reading ? 'Abrindo imagem…' : logo ? 'Trocar imagem' : 'Selecionar imagem'}</label>
+          {logo && <button className="text-button" disabled={reading} onClick={() => { onChange(null); setError('') }}>Remover logo</button>}
+          {!logo && <small>Imagem de até 5 MB</small>}
         </div>
       </div>
-
-      <div className={cardClass}>
-        <Field label="Nome da Empresa *">
-          <Input value={company.name} onChange={v => setCompany(c => ({ ...c, name: v }))} placeholder="Empresa LTDA" />
-        </Field>
-        <div className={rowClass}>
-          <Field label="CNPJ">
-            <Input value={company.cnpj} onChange={v => setCompany(c => ({ ...c, cnpj: v }))} placeholder="00.000.000/0001-00" />
-          </Field>
-          <Field label="Telefone">
-            <Input value={company.phone} onChange={v => setCompany(c => ({ ...c, phone: v }))} placeholder="(00) 00000-0000" />
-          </Field>
-        </div>
-        <Field label="E-mail">
-          <Input value={company.email} onChange={v => setCompany(c => ({ ...c, email: v }))} placeholder="empresa@email.com" type="email" />
-        </Field>
-        <Field label="Endereço">
-          <Input value={company.address} onChange={v => setCompany(c => ({ ...c, address: v }))} placeholder="Rua, número, bairro, cidade — UF" />
-        </Field>
-      </div>
+      {error && <small className="field-error" role="alert">{error}</small>}
     </div>
   )
 }
 
-// ---- CLIENTE TAB ----
-function ClienteTab({ client, setClient }) {
+const emailError = value => value && !/^[^\s@]+@[^\s@]+$/.test(value) && 'Informe um e-mail válido.'
+const amountError = value => Number(value) < 0 && 'Informe um valor igual ou maior que zero.'
+
+function PartyFields({ party, change, company, contextual }) {
   return (
-    <div className={cardClass}>
-      <Field label="Nome / Razão Social *">
-        <Input value={client.name} onChange={v => setClient(c => ({ ...c, name: v }))} placeholder="João da Silva" />
-      </Field>
-      <Field label="CPF / CNPJ">
-        <Input value={client.cpfCnpj} onChange={v => setClient(c => ({ ...c, cpfCnpj: v }))} placeholder="000.000.000-00" />
-      </Field>
-      <Field label="E-mail">
-        <Input value={client.email} onChange={v => setClient(c => ({ ...c, email: v }))} placeholder="cliente@email.com" type="email" />
-      </Field>
-      <Field label="Telefone">
-        <Input value={client.phone} onChange={v => setClient(c => ({ ...c, phone: v }))} placeholder="(00) 00000-0000" />
-      </Field>
-      <Field label="Endereço">
-        <Input value={client.address} onChange={v => setClient(c => ({ ...c, address: v }))} placeholder="Rua, número, bairro, cidade — UF" />
-      </Field>
-    </div>
+    <>
+      <Field label={company && !contextual ? 'Nome da empresa' : 'Nome ou razão social'} value={party.name} onChange={change('name')}
+        placeholder={company ? 'Ex.: Estúdio Almeida' : 'Ex.: Marina Costa'} autoComplete={company ? 'organization' : 'name'} />
+      <div className="field-row">
+        <Field label={company ? 'CNPJ' : 'CPF ou CNPJ'} value={company ? party.cnpj : party.cpfCnpj}
+          onChange={change(company ? 'cnpj' : 'cpfCnpj')} placeholder={company ? '00.000.000/0001-00' : '000.000.000-00'} />
+        <Field label="Telefone" value={party.phone} onChange={change('phone')} type="tel" autoComplete="tel" placeholder="(00) 00000-0000" />
+      </div>
+      <Field label="E-mail" type="email" value={party.email} onChange={change('email')} autoComplete="email"
+        validate={emailError} placeholder={company ? 'contato@empresa.com.br' : 'cliente@exemplo.com'} />
+      <Field label="Endereço" value={party.address} onChange={change('address')} autoComplete="street-address"
+        placeholder="Rua, número, bairro, cidade e UF" />
+      {company && <LogoField logo={party.logoPreview} onChange={change('logoPreview')} />}
+    </>
   )
 }
 
-// ---- DOCUMENTO TAB ----
-function DocumentoTab({ receipt, setReceipt }) {
-  let dateLabel = "Data de Emissão"
-  let dueDateLabel = "Data de Vencimento"
-  let paymentLabel = "Forma de Pagamento"
-
-  if (['proposta', 'orcamento'].includes(receipt.type)) {
-    dateLabel = "Data da Proposta"
-    dueDateLabel = "Válido até (Opcional)"
-    paymentLabel = "Condição de Pagamento"
-  } else if (receipt.type === 'contrato') {
-    dateLabel = "Data do Contrato"
-    dueDateLabel = "Fim da Vigência"
-    paymentLabel = "Condição de Pagamento"
-  } else if (['recibo', 'nota-servico'].includes(receipt.type)) {
-    dueDateLabel = "Data de Vencimento (Opcional)"
-  }
-
+function DocumentFields({ receipt, change, details }) {
+  const proposal = ['proposta', 'orcamento'].includes(receipt.type)
+  const contract = receipt.type === 'contrato' || details?.contract
   return (
-    <div className={cardClass}>
-      <div className={rowClass}>
-        <Field label="Tipo de Documento">
-          <Select
-            value={receipt.type}
-            onChange={v => setReceipt(r => ({ ...r, type: v }))}
-            options={[
-              { value: 'recibo', label: 'Recibo', icon: 'fluent-emoji-flat:receipt' },
-              { value: 'nota-servico', label: 'Nota de Serviço', icon: 'fluent-emoji-flat:clipboard' },
-              { value: 'fatura', label: 'Fatura', icon: 'fluent-emoji-flat:page-facing-up' },
-              { value: 'ordem-servico', label: 'Ordem de Serviço', icon: 'fluent-emoji-flat:wrench' },
-              { value: 'proposta', label: 'Proposta Comercial', icon: 'fluent-emoji-flat:memo' },
-              { value: 'contrato', label: 'Contrato', icon: 'fluent-emoji-flat:scroll' },
-              { value: 'orcamento', label: 'Orçamento', icon: 'fluent-emoji-flat:heavy-dollar-sign' },
-            ]}
-          />
-        </Field>
-        <Field label="Número">
-          <Input value={receipt.number} onChange={v => setReceipt(r => ({ ...r, number: v }))} placeholder="001" />
-        </Field>
+    <>
+      <div className="field-row">
+        <Field label="Tipo de documento" value={receipt.type} onChange={change('type')}
+          groups={templateOptions} />
+        <Field label="Número do documento" value={receipt.number} onChange={change('number')} placeholder="001" />
       </div>
-      <div className="w-full mb-4">
-        <Field label={dateLabel}>
-          <input
-            type="date"
-            value={receipt.date}
-            onChange={e => setReceipt(r => ({ ...r, date: e.target.value }))}
-            className={inputClass}
-          />
-        </Field>
+      <div className="field-row">
+        <Field label={details?.date ?? (proposal ? 'Data da proposta' : contract ? 'Data do contrato' : 'Data de emissão')}
+          type="date" value={receipt.date} onChange={change('date')} />
+        {(!details || details.due) && <Field label={proposal ? 'Válido até' : contract ? 'Fim da vigência' : 'Data de vencimento'}
+          type="date" value={receipt.dueDate} onChange={change('dueDate')}
+          validate={value => value && receipt.date && value < receipt.date && 'A data deve ser igual ou posterior à data inicial.'} />}
       </div>
-      <div className="w-full mb-4">
-        <Field label={dueDateLabel}>
-          <div className={inputClass} style={{ padding: 0, minHeight: '52px', cursor: 'text' }}>
-            <input
-              type="date"
-              value={receipt.dueDate}
-              onChange={e => setReceipt(r => ({ ...r, dueDate: e.target.value }))}
-              style={{
-                display: 'block',
-                width: '100%',
-                minHeight: '52px',
-                padding: '14px 16px',
-                background: 'transparent',
-                border: 'none',
-                outline: 'none',
-                appearance: 'none',
-                WebkitAppearance: 'none',
-                fontSize: '15px',
-                fontFamily: 'inherit',
-                color: 'inherit',
-                boxSizing: 'border-box',
-              }}
-            />
-          </div>
-        </Field>
-      </div>
-      <div className={rowClass}>
-        <Field label={paymentLabel}>
-          <Select
-            value={receipt.paymentMethod}
-            onChange={v => setReceipt(r => ({ ...r, paymentMethod: v }))}
-            options={[
-              { value: 'pix', label: 'PIX', icon: 'fluent-emoji-flat:high-voltage' },
-              { value: 'transferencia', label: 'Transferência', icon: 'fluent-emoji-flat:bank' },
-              { value: 'boleto', label: 'Boleto', icon: 'fluent-emoji-flat:page-facing-up' },
-              { value: 'cartao-credito', label: 'Cartão de Crédito', icon: 'fluent-emoji-flat:credit-card' },
-              { value: 'cartao-debito', label: 'Cartão de Débito', icon: 'fluent-emoji-flat:credit-card' },
-              { value: 'dinheiro', label: 'Dinheiro', icon: 'fluent-emoji-flat:dollar-banknote' },
-              { value: 'cheque', label: 'Cheque', icon: 'fluent-emoji-flat:memo' },
-              { value: 'a-prazo', label: 'A prazo', icon: 'fluent-emoji-flat:calendar' },
-            ]}
-          />
-        </Field>
-        <Field label="Moeda">
-          <Select
-            value={receipt.currency}
-            onChange={v => setReceipt(r => ({ ...r, currency: v }))}
-            options={[
-              { value: 'BRL', label: 'BRL — Real', icon: 'fluent-emoji-flat:flag-brazil' },
-              { value: 'USD', label: 'USD — Dólar', icon: 'fluent-emoji-flat:flag-united-states' },
-              { value: 'EUR', label: 'EUR — Euro', icon: 'fluent-emoji-flat:flag-european-union' },
-            ]}
-          />
-        </Field>
-      </div>
-      <Field label="Observações / Notas">
-        <textarea
-          value={receipt.notes}
-          onChange={e => setReceipt(r => ({ ...r, notes: e.target.value }))}
-          placeholder="Informações adicionais, condições de pagamento, instruções..."
-          rows={4}
-          className={`${inputClass} resize-y leading-relaxed`}
-        />
-      </Field>
-    </div>
+      {(!details || details.total) && <div className="field-row">
+        <Field label={proposal || contract ? 'Condição de pagamento' : 'Forma de pagamento'} value={receipt.paymentMethod}
+          onChange={change('paymentMethod')} options={paymentOptions} />
+        <Field label="Moeda" value={receipt.currency} onChange={change('currency')} options={currencyOptions} />
+      </div>}
+      {!contract && <Field label={details?.notes ?? 'Observações'} type="textarea" value={receipt.notes} onChange={change('notes')}
+        placeholder={details ? 'Informações adicionais' : 'Informações adicionais ou instruções de pagamento'} />}
+    </>
   )
 }
 
-// ---- ITENS TAB ----
-function ItensTab({ items, setItems, subtotal, receipt }) {
-  const addItem = () => {
-    setItems(prev => [...prev, { id: Date.now(), description: '', quantity: '1', unit: 'un', unitPrice: '' }])
-  }
-
-  const removeItem = (id) => {
-    if (items.length === 1) return
-    setItems(prev => prev.filter(i => i.id !== id))
-  }
-
-  const updateItem = (id, field, value) => {
-    setItems(prev => prev.map(i => i.id === id ? { ...i, [field]: value } : i))
-  }
-
-  const currencySymbol = receipt?.currency === 'USD' ? '$' : receipt?.currency === 'EUR' ? '€' : 'R$'
-
+function ItemsFields({ items, subtotal, currency, update, details, contract }) {
+  const addButtonId = useId()
+  const showPrices = !details || Boolean(details.total)
+  const entryName = contract ? 'Entrega' : 'Item'
+  const addEntry = <button className="button" id={addButtonId}
+    onClick={() => update(current => [...current, newItem(crypto.randomUUID())])}>
+    <Plus size={16} aria-hidden="true" /> Adicionar {entryName.toLowerCase()}
+  </button>
   return (
-    <div>
-      {items.map((item, idx) => (
-        <div key={item.id} className={`${cardClass} relative`}>
-          <div className="flex justify-between items-center mb-4">
-            <span className="font-cabinet font-extrabold text-[15px] text-black">
-              Item #{idx + 1}
-            </span>
-            {items.length > 1 && (
-              <button 
-                onClick={() => removeItem(item.id)}
-                className="bg-[#ff5f57] border-2 border-black text-white rounded-lg px-3 py-1.5 cursor-pointer text-xs font-bold shadow-[2px_2px_0px_0px_#000000] transition-all duration-100 hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none"
-              >
-                ✕ Remover
-              </button>
-            )}
-          </div>
-          <Field label="Descrição">
-            <Input
-              value={item.description}
-              onChange={v => updateItem(item.id, 'description', v)}
-              placeholder="Descrição do serviço ou produto"
-            />
-          </Field>
-          <div className="flex flex-col md:flex-row gap-3">
-            <div className="flex-1">
-              <Field label="Qtd.">
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={item.quantity === 0 ? '' : item.quantity}
-                  onChange={e => updateItem(item.id, 'quantity', e.target.value)}
-                  className={inputClass}
-                />
-              </Field>
-            </div>
-            <div className="flex-1">
-              <Field label="Unidade">
-                <Select
-                  value={item.unit}
-                  onChange={v => updateItem(item.id, 'unit', v)}
-                  options={[
-                    { value: 'un', label: 'un' },
-                    { value: 'hr', label: 'hr' },
-                    { value: 'dia', label: 'dia' },
-                    { value: 'mês', label: 'mês' },
-                    { value: 'kg', label: 'kg' },
-                    { value: 'm²', label: 'm²' },
-                    { value: 'km', label: 'km' },
-                    { value: 'proj', label: 'proj' },
-                  ]}
-                />
-              </Field>
-            </div>
-            <div className="flex-1">
-              <Field label={`Valor (${currencySymbol})`}>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={item.unitPrice === 0 ? '' : item.unitPrice}
-                  onChange={e => updateItem(item.id, 'unitPrice', e.target.value)}
-                  className={inputClass}
-                />
-              </Field>
-            </div>
-          </div>
-          <div className="text-right text-[15px] font-extrabold font-cabinet text-black pt-2">
-            Subtotal: {currencySymbol} {((parseFloat(item.quantity) || 0) * (parseFloat(item.unitPrice) || 0)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-          </div>
-        </div>
-      ))}
-
-      <button 
-        onClick={addItem}
-        className="w-full p-4 rounded-2xl cursor-pointer bg-white border-2 border-dashed border-black text-black font-cabinet font-extrabold text-[15px] mb-4 transition-all duration-200 hover:bg-gray-50"
-      >
-        + Adicionar Item
-      </button>
-
-      {/* Total summary */}
-      <div className="bg-primary rounded-2xl p-6 border-2 border-black shadow-[4px_4px_0px_0px_#000000]">
-        <div className="flex justify-between items-center">
-          <span className="font-cabinet font-extrabold text-xl text-black">
-            Total
-          </span>
-          <span className="font-cabinet font-black text-3xl text-black">
-            {currencySymbol} {subtotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-          </span>
-        </div>
-      </div>
-    </div>
+    <>
+      {items.map((item, index) => {
+        const change = field => value => update(current => current.map(row => row.id === item.id ? { ...row, [field]: value } : row))
+        const quantityFields = <>
+          <Field label="Quantidade" type="number" min="0" value={item.quantity} onChange={change('quantity')} validate={amountError} />
+          <Field label="Unidade" value={item.unit} onChange={change('unit')} options={unitOptions} />
+        </>
+        const removeLabel = `Remover ${entryName.toLowerCase()} ${index + 1}`
+        const removeEntry = <button className={contract ? 'icon-button' : 'icon-button remove-item'} aria-label={removeLabel}
+          onClick={() => {
+            update(current => current.filter(row => row.id !== item.id))
+            document.getElementById(addButtonId)?.focus()
+          }}><Trash2 size={17} aria-hidden="true" /></button>
+        return (
+          <fieldset className="item-fields" key={item.id}>
+            <legend>{entryName} {index + 1}</legend>
+            {items.length > 1 && (contract ? (
+              <ActionHelp className="remove-item" label={removeLabel} help="Retira esta entrega do escopo e recalcula o total do contrato.">
+                {removeEntry}
+              </ActionHelp>
+            ) : removeEntry)}
+            <Field label={contract ? 'Escopo ou entrega' : 'Descrição'} type={contract ? 'textarea' : 'text'}
+              value={item.description} onChange={change('description')}
+              placeholder={contract ? 'Descreva o que foi combinado' : details?.items ?? 'Serviço ou produto'} />
+            {contract ? <>
+              <Field label={`Valor unitário (${currency}) · opcional`} type="number" min="0" value={item.unitPrice}
+                onChange={change('unitPrice')} validate={amountError} />
+              <ActionHelp label="Quantidade e unidade" help="Mostra os campos para definir a quantidade e a unidade da entrega. Se houver valor unitário, a quantidade entra no cálculo do subtotal.">
+                <details className="quantity-details">
+                  <summary>Quantidade e unidade</summary>
+                  <div className="field-row">{quantityFields}</div>
+                </details>
+              </ActionHelp>
+            </> : <div className={showPrices ? 'field-row item-row' : 'field-row'}>
+              {quantityFields}
+              {showPrices && <Field label={`Valor (${currency})`} type="number" min="0" value={item.unitPrice} onChange={change('unitPrice')} validate={amountError} />}
+            </div>}
+            {showPrices && (!contract || item.unitPrice !== '') && <div className="item-total">Subtotal <strong>{money(itemTotal(item), currency)}</strong></div>}
+          </fieldset>
+        )
+      })}
+      {contract ? <ActionHelp label="Adicionar entrega" help="Cria um campo para descrever outra entrega do contrato e, se necessário, informar seu valor.">
+        {addEntry}
+      </ActionHelp> : addEntry}
+      {showPrices && (!contract || items.some(item => item.unitPrice !== '')) && <div className="grand-total">
+        <span>{contract ? 'Total do contrato' : details?.total ?? 'Total do documento'}</span><strong>{money(subtotal, currency)}</strong>
+      </div>}
+    </>
   )
 }
 
-export default function FormSection({ activeTab, company, setCompany, client, setClient, receipt, setReceipt, items, setItems, subtotal }) {
+function ClauseFields({ receipt, update, onInsert }) {
+  const addButtonId = useId()
+  const [addedId, setAddedId] = useState(null)
+  const clauses = receipt.clauses ?? []
+  const changeClauses = transform => update(current => ({ ...current, clauses: transform(current.clauses ?? []) }))
+
   return (
-    <div className="w-full">
-      {activeTab === 'empresa' && <EmpresaTab company={company} setCompany={setCompany} />}
-      {activeTab === 'cliente' && <ClienteTab client={client} setClient={setClient} />}
-      {activeTab === 'documento' && <DocumentoTab receipt={receipt} setReceipt={setReceipt} />}
-      {activeTab === 'itens' && <ItensTab items={items} setItems={setItems} subtotal={subtotal} receipt={receipt} />}
+    <>
+      <ClauseSuggestions key={receipt.type} type={receipt.type} onInsert={onInsert} />
+      {clauses.map((clause, index) => {
+        const change = field => value => changeClauses(current => current.map(row => row.id === clause.id ? { ...row, [field]: value } : row))
+        return (
+          <fieldset className="item-fields" key={clause.id}>
+            <legend>Cláusula {index + 1}</legend>
+            <ActionHelp className="remove-item" label={`Remover cláusula ${index + 1}`} help="Exclui esta cláusula do contrato e renumera as demais.">
+              <button type="button" className="icon-button" aria-label={`Remover cláusula ${index + 1}`}
+                onClick={() => {
+                  changeClauses(current => current.filter(row => row.id !== clause.id))
+                  document.getElementById(addButtonId)?.focus()
+                }}><Trash2 size={17} aria-hidden="true" /></button>
+            </ActionHelp>
+            <Field label="Título" value={clause.title} onChange={change('title')} autoFocus={addedId === clause.id}
+              placeholder="Ex.: Prazos de entrega" />
+            <Field label="Texto da cláusula" type="textarea" value={clause.text} onChange={change('text')} />
+          </fieldset>
+        )
+      })}
+      <ActionHelp label="Adicionar cláusula" help="Cria uma cláusula numerada com campos para título e texto. Ela aparece na prévia e no PDF quando preenchida.">
+        <button type="button" className="button" id={addButtonId} onClick={() => {
+          const id = crypto.randomUUID()
+          setAddedId(id)
+          changeClauses(current => [...current, { id, title: '', text: '' }])
+        }}><Plus size={16} aria-hidden="true" /> Adicionar cláusula</button>
+      </ActionHelp>
+      <Field label="Condições gerais" type="textarea" value={receipt.notes}
+        onChange={notes => update(current => ({ ...current, notes }))}
+        placeholder="Informações adicionais acordadas entre as partes" />
+    </>
+  )
+}
+
+export default function FormSection({ activeTab, draft, update, updateDraft, subtotal, contract }) {
+  const change = section => field => value => update(section, current => ({ ...current, [field]: value }))
+  const details = documentDetails[draft.receipt.type]
+
+  function insertContractDraft({ scope, clauses }) {
+    updateDraft(current => {
+      if (current.receipt.type !== draft.receipt.type) return current
+      const savedClauses = current.receipt.clauses ?? []
+      const newClauses = clauses
+        .filter(clause => !savedClauses.some(entry => entry.title.trim() === clause.title && entry.text.trim() === clause.text))
+        .map(clause => ({ ...clause, id: crypto.randomUUID() }))
+      const newScope = [...new Set(scope)]
+        .filter(description => !current.items.some(item => item.description.trim() === description))
+        .map(description => ({ ...newItem(crypto.randomUUID()), description }))
+      const existingItems = newScope.length ? current.items.filter(item =>
+        item.description.trim() || item.unitPrice !== '' || String(item.quantity) !== '1' || item.unit !== 'un') : current.items
+      return {
+        ...current,
+        items: [...existingItems, ...newScope],
+        receipt: { ...current.receipt, clauses: [...savedClauses, ...newClauses] },
+      }
+    })
+  }
+  return (
+    <div className="form-fields" key={activeTab}>
+      {activeTab === 'empresa' && <PartyFields party={draft.company} change={change('company')} company contextual={Boolean(details)} />}
+      {activeTab === 'cliente' && <PartyFields party={draft.client} change={change('client')} />}
+      {activeTab === 'documento' && <DocumentFields receipt={draft.receipt} change={change('receipt')} details={details} />}
+      {activeTab === 'itens' && (contract ? (
+        <>
+          <section className="contract-fields" aria-label="Escopo">
+            <h3>{details?.items ?? 'Escopo do contrato'}</h3>
+            <ItemsFields items={draft.items} currency={draft.receipt.currency} subtotal={subtotal} details={details} contract
+              update={next => update('items', next)} />
+          </section>
+          <section className="contract-fields" aria-label="Cláusulas e condições">
+            <h3>Cláusulas e condições</h3>
+            <ClauseFields receipt={draft.receipt} update={next => update('receipt', next)} onInsert={insertContractDraft} />
+          </section>
+        </>
+      ) : <ItemsFields items={draft.items} currency={draft.receipt.currency} subtotal={subtotal} details={details}
+        update={next => update('items', next)} />)}
     </div>
   )
 }
