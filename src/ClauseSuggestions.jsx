@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import { LoaderCircle, Sparkles } from 'lucide-react'
+import { Bot, LoaderCircle } from 'lucide-react'
 import ActionHelp from './ActionHelp.jsx'
 
 export default function ClauseSuggestions({ type, onInsert }) {
@@ -75,7 +75,7 @@ export default function ClauseSuggestions({ type, onInsert }) {
       <ActionHelp label="Criar com IA" help="Cria um rascunho de escopo e cláusulas. Você decide quais partes inserir no contrato.">
         <button ref={trigger} type="button" className="button suggest-button" onClick={() => setPhase('compose')}
           disabled={composing || phase === 'review'}>
-          <Sparkles size={16} aria-hidden="true" /> Criar com IA
+          <Bot size={16} aria-hidden="true" /> Criar com IA
         </button>
       </ActionHelp>
       {phase === 'inserted' && <p className="suggestion-feedback" role="status">Rascunho inserido. Você pode editar o escopo e as cláusulas.</p>}
