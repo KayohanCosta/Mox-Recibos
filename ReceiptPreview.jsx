@@ -284,6 +284,10 @@ function LayoutFatura({ company, client, receipt, items, subtotal, details, titl
 // -------------------------------------------------------------
 function LayoutComercial({ company, client, receipt, items, subtotal, details, title }) {
   const docTitle = title || DOC_TYPES[receipt.type] || 'PROPOSTA'
+  const contract = receipt.type === 'contrato' || details?.contract
+  const rows = contract ? items.filter(item => item.description.trim() || item.unitPrice !== '') : items
+  const showTotal = !contract || rows.some(item => item.unitPrice !== '')
+  const clauses = contract ? (receipt.clauses ?? []).filter(clause => clause.title.trim() || clause.text.trim()) : []
   return (
     <>
       <div style={{ padding: '64px 48px 32px 48px', textAlign: 'center' }}>
@@ -320,41 +324,56 @@ function LayoutComercial({ company, client, receipt, items, subtotal, details, t
               </div>
           </div>
 
-          <div style={{ marginBottom: '40px' }}>
+          {(rows.length > 0 || !contract) && <div style={{ marginBottom: '40px' }}>
               <div style={{ fontFamily: 'Cabinet Grotesk, sans-serif', fontWeight: 800, fontSize: '16px', color: '#171e19', marginBottom: '16px', borderBottom: '2px solid #171e19', paddingBottom: '8px' }}>
-                 {details?.items ?? 'Escopo / Produtos Relacionados'}
+                 {details?.items ?? (contract ? 'Escopo do contrato' : 'Escopo / Produtos Relacionados')}
               </div>
               <div style={{ border: '1px solid #eee', borderRadius: '8px', overflow: 'hidden' }}>
-                 {items.map((item, idx) => (
-                   <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '16px', borderBottom: idx !== items.length - 1 ? '1px solid #eee' : 'none', background: idx % 2 === 0 ? '#fff' : '#fafafa' }}>
-                      <div>
-                         <div style={{ fontSize: '14px', fontWeight: 700, color: '#171e19', marginBottom: '4px' }}>{item.description || 'Item'}</div>
-                         <div style={{ fontSize: '12px', color: '#888' }}>Qtd: {item.quantity} {item.unit} | Unitário: {formatCurrency(details ? Number(item.unitPrice) : item.unitPrice, receipt.currency)}</div>
+                 {rows.map((item, idx) => (
+                   <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '16px', borderBottom: idx !== rows.length - 1 ? '1px solid #eee' : 'none', background: idx % 2 === 0 ? '#fff' : '#fafafa' }}>
+                      <div style={contract ? { minWidth: 0, paddingRight: '12px' } : undefined}>
+                         <div style={{ fontSize: '14px', fontWeight: 700, color: '#171e19', marginBottom: '4px', ...(contract && { whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }) }}>{item.description || (contract ? 'Entrega' : 'Item')}</div>
+                         {(!contract || item.unitPrice !== '' || Number(item.quantity) !== 1 || item.unit !== 'un') && (
+                           <div style={{ fontSize: '12px', color: '#888' }}>
+                             Qtd: {item.quantity} {item.unit}
+                             {(!contract || item.unitPrice !== '') && <> | Unitário: {formatCurrency(contract || details ? Number(item.unitPrice) : item.unitPrice, receipt.currency)}</>}
+                           </div>
+                         )}
                       </div>
-                      <div style={{ fontSize: '15px', fontWeight: 800, color: '#171e19' }}>
+                      {(!contract || item.unitPrice !== '') && <div style={{ fontSize: '15px', fontWeight: 800, color: '#171e19' }}>
                          {formatCurrency(item.quantity * item.unitPrice, receipt.currency)}
-                      </div>
+                      </div>}
                    </div>
                  ))}
-                 <div style={{ background: '#171e19', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>{details?.total.toLocaleUpperCase('pt-BR') ?? 'TOTAL DA PROPOSTA'}</div>
+                 {showTotal && <div style={{ background: '#171e19', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>{contract ? 'TOTAL DO CONTRATO' : details?.total.toLocaleUpperCase('pt-BR') ?? 'TOTAL DA PROPOSTA'}</div>
                     <div style={{ fontSize: '20px', fontWeight: 900, color: '#ffe17c' }}>{formatCurrency(subtotal, receipt.currency)}</div>
-                 </div>
+                 </div>}
               </div>
-          </div>
+          </div>}
 
-          {(receipt.notes || details?.contract) && (
+          {(receipt.notes || (contract && (clauses.length > 0 || showTotal || receipt.dueDate))) && (
              <div style={{ marginBottom: '40px' }}>
                 <div style={{ fontFamily: 'Cabinet Grotesk, sans-serif', fontWeight: 800, fontSize: '16px', color: '#171e19', marginBottom: '16px', borderBottom: '2px solid #171e19', paddingBottom: '8px' }}>
-                   {details?.contract ? details.notes : 'Termos & Condições'}
+                   {contract ? 'Cláusulas e condições' : 'Termos & Condições'}
                 </div>
-                <div style={{ fontSize: '13px', color: '#444', lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>
+                {clauses.length > 0 && (
+                  <ol style={{ padding: 0, margin: '0 0 14px', listStyle: 'none' }}>
+                    {clauses.map((clause, index) => (
+                      <li key={clause.id} style={{ fontSize: '13px', color: '#444', marginBottom: '12px', overflowWrap: 'anywhere' }}>
+                        <strong>Cláusula {index + 1}{clause.title.trim() && ` · ${clause.title.trim()}`}</strong>
+                        {clause.text.trim() && <div style={{ lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>{clause.text}</div>}
+                      </li>
+                    ))}
+                  </ol>
+                )}
+                {receipt.notes && <div style={{ fontSize: '13px', color: '#444', lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>
                    {receipt.notes}
-                </div>
-                <div style={{ marginTop: '16px', fontSize: '13px', color: '#444' }}>
-                   <strong>Condição de Pagamento:</strong> {PAYMENT_LABELS[receipt.paymentMethod] || 'A combinar'}
-                   {receipt.dueDate && <span> | <strong>{details?.contract ? 'Fim da vigência:' : 'Validade/Vencimento:'}</strong> {formatDate(receipt.dueDate)}</span>}
-                </div>
+                </div>}
+                {(!contract || showTotal || receipt.dueDate) && <div style={{ marginTop: '16px', fontSize: '13px', color: '#444' }}>
+                   {(!contract || showTotal) && <><strong>Condição de Pagamento:</strong> {PAYMENT_LABELS[receipt.paymentMethod] || 'A combinar'}</>}
+                   {receipt.dueDate && <span>{(!contract || showTotal) && ' | '}<strong>{contract ? 'Fim da vigência:' : 'Validade/Vencimento:'}</strong> {formatDate(receipt.dueDate)}</span>}
+                </div>}
              </div>
           )}
 

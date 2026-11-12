@@ -117,6 +117,11 @@ button:disabled { cursor: default; opacity: .6; }
 .section-content h2 { font-size: 21px; letter-spacing: -.035em; }
 .section-content > p { margin-top: 4px; color: var(--muted); font-size: 13px; }
 .form-fields { display: grid; gap: 16px; margin-top: 20px; }
+.contract-fields { display: grid; gap: 12px; min-width: 0; }
+.contract-fields + .contract-fields { border-top: 1px solid var(--line); padding-top: 16px; margin-top: 4px; }
+.contract-fields h3 { font: 650 14px/1.4 var(--ui-font); }
+.quantity-details summary { color: var(--accent-dark); font-size: 13px; font-weight: 600; cursor: pointer; }
+.quantity-details[open] .field-row { margin-top: 8px; }
 .field-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .field { min-width: 0; display: grid; gap: 5px; align-content: start; }
 .field label, .field-label { font-size: 13px; font-weight: 600; }

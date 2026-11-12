@@ -14,12 +14,12 @@ const templateOptions = categories.map(category => ({
   options: templates.filter(template => template.category === category.id).map(({ id, name }) => [id, name]),
 }))
 
-function Field({ label, value, onChange, type = 'text', placeholder, options, groups, validate, min, autoComplete }) {
+function Field({ label, value, onChange, type = 'text', placeholder, options, groups, validate, min, autoComplete, autoFocus }) {
   const id = useId()
   const [touched, setTouched] = useState(false)
   const error = touched && validate?.(value)
   const props = {
-    id, value, onChange: event => onChange(event.target.value), onBlur: () => setTouched(true),
+    id, value, autoFocus, onChange: event => onChange(event.target.value), onBlur: () => setTouched(true),
     'aria-invalid': error ? true : undefined,
     'aria-describedby': error ? `${id}-error` : undefined,
   }
@@ -142,46 +142,96 @@ function DocumentFields({ receipt, change, details }) {
           onChange={change('paymentMethod')} options={paymentOptions} />
         <Field label="Moeda" value={receipt.currency} onChange={change('currency')} options={currencyOptions} />
       </div>}
-      <Field label={details?.notes ?? 'Observações'} type="textarea" value={receipt.notes} onChange={change('notes')}
-        placeholder={details?.contract ? 'Insira as cláusulas e condições acordadas entre as partes'
-          : details ? 'Informações adicionais' : 'Informações adicionais ou instruções de pagamento'} />
+      {!contract && <Field label={details?.notes ?? 'Observações'} type="textarea" value={receipt.notes} onChange={change('notes')}
+        placeholder={details ? 'Informações adicionais' : 'Informações adicionais ou instruções de pagamento'} />}
     </>
   )
 }
 
-function ItemsFields({ items, subtotal, currency, update, details }) {
+function ItemsFields({ items, subtotal, currency, update, details, contract }) {
   const addButtonId = useId()
   const showPrices = !details || Boolean(details.total)
+  const entryName = contract ? 'Entrega' : 'Item'
   return (
     <>
       {items.map((item, index) => {
         const change = field => value => update(current => current.map(row => row.id === item.id ? { ...row, [field]: value } : row))
+        const quantityFields = <>
+          <Field label="Quantidade" type="number" min="0" value={item.quantity} onChange={change('quantity')} validate={amountError} />
+          <Field label="Unidade" value={item.unit} onChange={change('unit')} options={unitOptions} />
+        </>
         return (
           <fieldset className="item-fields" key={item.id}>
-            <legend>Item {index + 1}</legend>
-            {items.length > 1 && <button className="icon-button remove-item" aria-label={`Remover item ${index + 1}`}
+            <legend>{entryName} {index + 1}</legend>
+            {items.length > 1 && <button className="icon-button remove-item" aria-label={`Remover ${entryName.toLowerCase()} ${index + 1}`}
               onClick={() => {
                 update(current => current.filter(row => row.id !== item.id))
                 document.getElementById(addButtonId)?.focus()
               }}><Trash2 size={17} aria-hidden="true" /></button>}
-            <Field label="Descrição" value={item.description} onChange={change('description')} placeholder={details?.items ?? 'Serviço ou produto'} />
-            <div className={showPrices ? 'field-row item-row' : 'field-row'}>
-              <Field label="Quantidade" type="number" min="0" value={item.quantity} onChange={change('quantity')} validate={amountError} />
-              <Field label="Unidade" value={item.unit} onChange={change('unit')} options={unitOptions} />
+            <Field label={contract ? 'Escopo ou entrega' : 'Descrição'} type={contract ? 'textarea' : 'text'}
+              value={item.description} onChange={change('description')}
+              placeholder={contract ? 'Descreva o que foi combinado' : details?.items ?? 'Serviço ou produto'} />
+            {contract ? <>
+              <Field label={`Valor unitário (${currency}) · opcional`} type="number" min="0" value={item.unitPrice}
+                onChange={change('unitPrice')} validate={amountError} />
+              <details className="quantity-details">
+                <summary>Quantidade e unidade</summary>
+                <div className="field-row">{quantityFields}</div>
+              </details>
+            </> : <div className={showPrices ? 'field-row item-row' : 'field-row'}>
+              {quantityFields}
               {showPrices && <Field label={`Valor (${currency})`} type="number" min="0" value={item.unitPrice} onChange={change('unitPrice')} validate={amountError} />}
-            </div>
-            {showPrices && <div className="item-total">Subtotal <strong>{money(itemTotal(item), currency)}</strong></div>}
+            </div>}
+            {showPrices && (!contract || item.unitPrice !== '') && <div className="item-total">Subtotal <strong>{money(itemTotal(item), currency)}</strong></div>}
           </fieldset>
         )
       })}
       <button className="button" id={addButtonId}
-        onClick={() => update(current => [...current, newItem(crypto.randomUUID())])}><Plus size={16} aria-hidden="true" /> Adicionar item</button>
-      {showPrices && <div className="grand-total"><span>{details?.total ?? 'Total do documento'}</span><strong>{money(subtotal, currency)}</strong></div>}
+        onClick={() => update(current => [...current, newItem(crypto.randomUUID())])}><Plus size={16} aria-hidden="true" /> Adicionar {entryName.toLowerCase()}</button>
+      {showPrices && (!contract || items.some(item => item.unitPrice !== '')) && <div className="grand-total">
+        <span>{contract ? 'Total do contrato' : details?.total ?? 'Total do documento'}</span><strong>{money(subtotal, currency)}</strong>
+      </div>}
     </>
   )
 }
 
-export default function FormSection({ activeTab, draft, update, subtotal }) {
+function ClauseFields({ receipt, update }) {
+  const addButtonId = useId()
+  const [addedId, setAddedId] = useState(null)
+  const clauses = receipt.clauses ?? []
+  const changeClauses = transform => update(current => ({ ...current, clauses: transform(current.clauses ?? []) }))
+
+  return (
+    <>
+      {clauses.map((clause, index) => {
+        const change = field => value => changeClauses(current => current.map(row => row.id === clause.id ? { ...row, [field]: value } : row))
+        return (
+          <fieldset className="item-fields" key={clause.id}>
+            <legend>Cláusula {index + 1}</legend>
+            <button type="button" className="icon-button remove-item" aria-label={`Remover cláusula ${index + 1}`}
+              onClick={() => {
+                changeClauses(current => current.filter(row => row.id !== clause.id))
+                document.getElementById(addButtonId)?.focus()
+              }}><Trash2 size={17} aria-hidden="true" /></button>
+            <Field label="Título" value={clause.title} onChange={change('title')} autoFocus={addedId === clause.id}
+              placeholder="Ex.: Prazos de entrega" />
+            <Field label="Texto da cláusula" type="textarea" value={clause.text} onChange={change('text')} />
+          </fieldset>
+        )
+      })}
+      <button type="button" className="button" id={addButtonId} onClick={() => {
+        const id = crypto.randomUUID()
+        setAddedId(id)
+        changeClauses(current => [...current, { id, title: '', text: '' }])
+      }}><Plus size={16} aria-hidden="true" /> Adicionar cláusula</button>
+      <Field label="Condições gerais" type="textarea" value={receipt.notes}
+        onChange={notes => update(current => ({ ...current, notes }))}
+        placeholder="Informações adicionais acordadas entre as partes" />
+    </>
+  )
+}
+
+export default function FormSection({ activeTab, draft, update, subtotal, contract }) {
   const change = section => field => value => update(section, current => ({ ...current, [field]: value }))
   const details = documentDetails[draft.receipt.type]
   return (
@@ -189,8 +239,20 @@ export default function FormSection({ activeTab, draft, update, subtotal }) {
       {activeTab === 'empresa' && <PartyFields party={draft.company} change={change('company')} company contextual={Boolean(details)} />}
       {activeTab === 'cliente' && <PartyFields party={draft.client} change={change('client')} />}
       {activeTab === 'documento' && <DocumentFields receipt={draft.receipt} change={change('receipt')} details={details} />}
-      {activeTab === 'itens' && <ItemsFields items={draft.items} currency={draft.receipt.currency} subtotal={subtotal} details={details}
-        update={next => update('items', next)} />}
+      {activeTab === 'itens' && (contract ? (
+        <>
+          <section className="contract-fields" aria-label="Escopo">
+            <h3>{details?.items ?? 'Escopo do contrato'}</h3>
+            <ItemsFields items={draft.items} currency={draft.receipt.currency} subtotal={subtotal} details={details} contract
+              update={next => update('items', next)} />
+          </section>
+          <section className="contract-fields" aria-label="Cláusulas e condições">
+            <h3>Cláusulas e condições</h3>
+            <ClauseFields receipt={draft.receipt} update={next => update('receipt', next)} />
+          </section>
+        </>
+      ) : <ItemsFields items={draft.items} currency={draft.receipt.currency} subtotal={subtotal} details={details}
+        update={next => update('items', next)} />)}
     </div>
   )
 }

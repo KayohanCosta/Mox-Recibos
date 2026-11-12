@@ -35,13 +35,15 @@ export default function App() {
   const focusOnSectionChange = useRef(false)
   const section = sections[active]
   const template = templates.find(({ id }) => id === draft.receipt.type) ?? templates[0]
-  const libraryPage = isContract(template) ? 'contratos' : 'modelos'
+  const contract = isContract(template)
+  const libraryPage = contract ? 'contratos' : 'modelos'
   const details = documentDetails[template.id]
-  const sectionTitle = details
+  const sectionTitle = contract && section.id === 'itens' ? 'Escopo e cláusulas' : details
     ? { empresa: details.party[0], cliente: details.party[1], itens: details.items }[section.id] ?? section.title
     : section.title
   const subtotal = draft.items.reduce((sum, item) => sum + itemTotal(item), 0)
   const documentProps = { ...draft, subtotal }
+  const sectionName = entry => contract && entry.id === 'itens' ? 'Cláusulas' : entry.name
 
   useEffect(() => {
     const onHashChange = () => {
@@ -144,19 +146,19 @@ export default function App() {
               <nav className="section-nav" aria-label="Seções do editor">
                 {sections.map(({ id, name, icon: Icon }, index) => (
                   <button key={id} aria-current={index === active ? 'step' : undefined} onClick={() => selectSection(index)}>
-                    <Icon size={16} aria-hidden="true" /> {name}
+                    <Icon size={16} aria-hidden="true" /> {sectionName({ id, name })}
                   </button>
                 ))}
               </nav>
               <div className="section-content">
                 <h2 id="section-heading" tabIndex={-1} ref={sectionHeading}>{sectionTitle}</h2>
                 {sectionTitle === section.title && <p>{section.description}</p>}
-                <FormSection activeTab={section.id} draft={draft} update={update} subtotal={subtotal} />
+                <FormSection activeTab={section.id} draft={draft} update={update} subtotal={subtotal} contract={contract} />
               </div>
               <div className="section-footer">
                 {active > 0 && <button className="button" onClick={() => selectSection(active - 1)}><ArrowLeft size={16} aria-hidden="true" /> Voltar</button>}
                 {active < sections.length - 1 && <button className="button next-section" onClick={() => selectSection(active + 1)}>
-                  {sections[active + 1].name} <ChevronRight size={16} aria-hidden="true" />
+                  {sectionName(sections[active + 1])} <ChevronRight size={16} aria-hidden="true" />
                 </button>}
                 {active === sections.length - 1 && <button className="button next-section" onClick={focusPreview}>Ver prévia <ArrowRight size={16} aria-hidden="true" /></button>}
               </div>
