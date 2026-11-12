@@ -84,9 +84,22 @@ for (const width of [320, 768, 1440]) {
     await expect(page.getByRole('heading', { name: 'Dados da empresa' })).toBeVisible()
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(width)
     await checkEditorAccessibility(page)
-    if (width === 320) {
-      await page.getByRole('button', { name: 'Ver prévia' }).click()
+    if (width < 880) {
+      const view = page.getByRole('group', { name: 'Visualização do editor' })
+      await expect(page.getByRole('region', { name: 'Pré-visualização', exact: true })).toHaveCount(0)
+      await page.getByLabel('Nome da empresa').fill('Estúdio Almeida')
+      await view.getByRole('button', { name: 'Prévia', exact: true }).click()
       await expect(page.getByRole('region', { name: 'Área de visualização do documento' })).toBeFocused()
+      await expect(page.getByLabel('Nome da empresa')).toBeHidden()
+      await expect(page.getByRole('region', { name: 'Pré-visualização', exact: true }).getByText('Estúdio Almeida').first()).toBeVisible()
+      await view.getByRole('button', { name: 'Editar', exact: true }).click()
+      await expect(page.getByRole('heading', { name: 'Dados da empresa' })).toBeFocused()
+      await expect(page.getByLabel('Nome da empresa')).toHaveValue('Estúdio Almeida')
+      await view.getByRole('button', { name: 'Prévia', exact: true }).click()
+      await checkEditorAccessibility(page)
+    } else {
+      await expect(page.getByRole('group', { name: 'Visualização do editor' })).toHaveCount(0)
+      await expect(page.getByRole('region', { name: 'Pré-visualização', exact: true })).toBeVisible()
     }
     const zoom = page.getByRole('button', { name: /Ajustar à largura/ })
     const initialZoom = await zoom.innerText()
@@ -234,6 +247,8 @@ test('offers contracts in every category and exports clauses and validity', asyn
   await expect(clause.getByLabel('Título')).toBeFocused()
   await clause.getByLabel('Título').fill('Entrega')
   await clause.getByLabel('Texto da cláusula').fill('Texto acordado entre as partes.')
+  await checkEditorAccessibility(page)
+  await page.getByRole('button', { name: 'Ver prévia', exact: true }).click()
   const preview = page.getByRole('region', { name: 'Pré-visualização', exact: true })
   await expect(preview.getByText('Cláusula 1 · Entrega')).toBeVisible()
   await expect(preview.getByText('Entrega das chaves')).toBeVisible()
@@ -310,6 +325,7 @@ test('reviews and inserts only the selected suggestions without sending draft da
   await expect(suggest).toBeFocused()
   await expect(page.getByRole('group', { name: 'Cláusula 1' }).getByLabel('Título')).toHaveValue('Entregas')
   await expect(page.getByRole('group', { name: 'Cláusula 2' })).toHaveCount(0)
+  await page.getByRole('group', { name: 'Visualização do editor' }).getByRole('button', { name: 'Prévia' }).click()
   await expect(page.getByRole('region', { name: 'Pré-visualização', exact: true }).getByText('Cláusula 1 · Entregas')).toBeVisible()
 })
 

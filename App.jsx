@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowLeft, ArrowRight, Building2, Check, ChevronRight, Download, FileText, List, LoaderCircle, UserRound } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Building2, Check, ChevronRight, Download, Eye, FileText, List, LoaderCircle, PencilLine, UserRound } from 'lucide-react'
 import FormSection from './FormSection.jsx'
 import ActionHelp from './src/ActionHelp.jsx'
 import Navbar from './Navbar.jsx'
@@ -16,7 +16,6 @@ const sections = [
   { id: 'itens', name: 'Itens', icon: List, title: 'Itens e valores', description: 'Liste os produtos ou serviços e confira o total.' },
 ]
 
-const focusPreview = () => document.getElementById('preview-area')?.focus()
 function pageFromLocation() {
   const hash = window.location.hash.slice(1)
   return ['editor', 'contratos'].includes(hash) ? hash : 'modelos'
@@ -25,6 +24,7 @@ function pageFromLocation() {
 export default function App() {
   const [page, setPage] = useState(pageFromLocation)
   const [active, setActive] = useState(0)
+  const [mobilePane, setMobilePane] = useState('edit')
   const [generation, setGeneration] = useState('idle')
   const [exportDocument, setExportDocument] = useState(null)
   const { draft, status, update } = useDraft()
@@ -34,6 +34,7 @@ export default function App() {
   const focusOnNavigation = useRef(false)
   const sectionHeading = useRef(null)
   const focusOnSectionChange = useRef(false)
+  const focusOnPaneChange = useRef(false)
   const section = sections[active]
   const template = templates.find(({ id }) => id === draft.receipt.type) ?? templates[0]
   const contract = isContract(template)
@@ -47,7 +48,7 @@ export default function App() {
   const sectionName = entry => contract && entry.id === 'itens' ? 'Cláusulas' : entry.name
   const clausesSection = contract && section.id === 'itens'
   const backButton = <button className="button" onClick={() => selectSection(active - 1)}><ArrowLeft size={16} aria-hidden="true" /> Voltar</button>
-  const previewButton = <button className={clausesSection ? 'button' : 'button next-section'} onClick={focusPreview}>
+  const previewButton = <button className={clausesSection ? 'button' : 'button next-section'} onClick={() => selectPane('preview')}>
     Ver prévia <ArrowRight size={16} aria-hidden="true" />
   </button>
 
@@ -75,6 +76,12 @@ export default function App() {
     sectionHeading.current?.focus()
   }, [active])
 
+  useEffect(() => {
+    if (!focusOnPaneChange.current) return
+    focusOnPaneChange.current = false
+    focusPane(mobilePane)
+  }, [mobilePane])
+
   function navigate(next) {
     if (next !== page) window.location.hash = next
   }
@@ -82,6 +89,7 @@ export default function App() {
   function selectTemplate(type) {
     if (type !== draft.receipt.type || !saved) update('receipt', current => ({ ...current, type }))
     setActive(0)
+    setMobilePane('edit')
     navigate('editor')
   }
 
@@ -89,6 +97,20 @@ export default function App() {
     if (index === active) return
     focusOnSectionChange.current = true
     setActive(index)
+  }
+
+  function focusPane(pane) {
+    if (pane === 'edit') sectionHeading.current?.focus()
+    else document.getElementById('preview-area')?.focus()
+  }
+
+  function selectPane(pane) {
+    if (pane === mobilePane) {
+      focusPane(pane)
+      return
+    }
+    focusOnPaneChange.current = true
+    setMobilePane(pane)
   }
 
   async function handleDownload() {
@@ -122,33 +144,38 @@ export default function App() {
       ) : editor ? (
         <main className="editor layout-width" id="main-content">
           <div className="editor-heading">
-            <div>
-              <a className="back-link" href={`#${libraryPage}`}>
-                <ArrowLeft size={15} aria-hidden="true" /> {libraryPage === 'contratos' ? 'Contratos' : 'Modelos'}
-              </a>
-              <h1 tabIndex={-1}>{template.name}</h1>
-              <p className="draft-status" role="status">
-                {status === 'error' ? 'O rascunho está indisponível neste navegador.'
-                  : status === 'saving' ? 'Salvando rascunho…'
-                  : saved ? <><Check size={15} aria-hidden="true" /> Rascunho salvo neste navegador</>
-                    : 'As alterações serão salvas neste navegador.'}
-              </p>
+            <a className="back-link" href={`#${libraryPage}`}>
+              <ArrowLeft size={15} aria-hidden="true" /> {libraryPage === 'contratos' ? 'Contratos' : 'Modelos'}
+            </a>
+            <h1 tabIndex={-1}>{template.name}</h1>
+            <p className="draft-status" role="status">
+              {status === 'error' ? 'O rascunho está indisponível neste navegador.'
+                : status === 'saving' ? 'Salvando rascunho…'
+                : saved ? <><Check size={15} aria-hidden="true" /> Rascunho salvo neste navegador</>
+                  : 'As alterações serão salvas neste navegador.'}
+            </p>
+          </div>
+          <div className="editor-commandbar">
+            <div className="editor-view-switch" role="group" aria-label="Visualização do editor">
+              <button type="button" aria-pressed={mobilePane === 'edit'} onClick={() => selectPane('edit')}>
+                <PencilLine size={16} aria-hidden="true" /> Editar
+              </button>
+              <button type="button" aria-pressed={mobilePane === 'preview'} onClick={() => selectPane('preview')}>
+                <Eye size={17} aria-hidden="true" /> Prévia
+              </button>
             </div>
             <div className="export-action">
-              <div className="editor-actions">
-                <button className="button primary" onClick={handleDownload} disabled={generation === 'loading'}>
-                  {generation === 'loading' ? <LoaderCircle className="spinner" size={17} aria-hidden="true" /> : <Download size={17} aria-hidden="true" />}
-                  {generation === 'loading' ? 'Gerando PDF…' : 'Baixar PDF'}
-                </button>
-                <button className="button jump-preview" onClick={focusPreview}>Ver prévia</button>
-              </div>
+              <button className="button primary" onClick={handleDownload} disabled={generation === 'loading'}>
+                {generation === 'loading' ? <LoaderCircle className="spinner" size={17} aria-hidden="true" /> : <Download size={17} aria-hidden="true" />}
+                {generation === 'loading' ? 'Gerando PDF…' : 'Baixar PDF'}
+              </button>
               {generation === 'done' && <small role="status">Download iniciado.</small>}
               {generation === 'error' && <small className="field-error" role="alert">Falha ao gerar o PDF. Tente novamente.</small>}
             </div>
           </div>
 
-          <div className="workspace">
-            <section className="editor-panel" aria-labelledby="section-heading">
+          <div className="workspace" data-mobile-pane={mobilePane}>
+            <div className="editor-side">
               <nav className="section-nav" aria-label="Seções do editor">
                 {sections.map(({ id, name, icon: Icon }, index) => (
                   <button key={id} aria-current={index === active ? 'step' : undefined} onClick={() => selectSection(index)}>
@@ -156,21 +183,23 @@ export default function App() {
                   </button>
                 ))}
               </nav>
-              <div className="section-content">
-                <h2 id="section-heading" tabIndex={-1} ref={sectionHeading}>{sectionTitle}</h2>
-                {sectionTitle === section.title && <p>{section.description}</p>}
-                <FormSection activeTab={section.id} draft={draft} update={update} subtotal={subtotal} contract={contract} />
-              </div>
-              <div className="section-footer">
-                {active > 0 && (clausesSection ? <ActionHelp className="action-help-start" label="Voltar"
-                  help="Volta para os dados do documento, onde você pode ajustar datas, moeda e condição de pagamento.">{backButton}</ActionHelp> : backButton)}
-                {active < sections.length - 1 && <button className="button next-section" onClick={() => selectSection(active + 1)}>
-                  {sectionName(sections[active + 1])} <ChevronRight size={16} aria-hidden="true" />
-                </button>}
-                {active === sections.length - 1 && (clausesSection ? <ActionHelp className="next-section" label="Ver prévia"
-                  help="Leva à pré-visualização para conferir o contrato antes de baixar o PDF.">{previewButton}</ActionHelp> : previewButton)}
-              </div>
-            </section>
+              <section className="editor-panel" aria-labelledby="section-heading">
+                <div className="section-content">
+                  <h2 id="section-heading" tabIndex={-1} ref={sectionHeading}>{sectionTitle}</h2>
+                  {sectionTitle === section.title && <p>{section.description}</p>}
+                  <FormSection activeTab={section.id} draft={draft} update={update} subtotal={subtotal} contract={contract} />
+                </div>
+                <div className="section-footer">
+                  {active > 0 && (clausesSection ? <ActionHelp className="action-help-start" label="Voltar"
+                    help="Volta para os dados do documento, onde você pode ajustar datas, moeda e condição de pagamento.">{backButton}</ActionHelp> : backButton)}
+                  {active < sections.length - 1 && <button className="button next-section" onClick={() => selectSection(active + 1)}>
+                    {sectionName(sections[active + 1])} <ChevronRight size={16} aria-hidden="true" />
+                  </button>}
+                  {active === sections.length - 1 && (clausesSection ? <ActionHelp className="next-section" label="Ver prévia"
+                    help="Leva à pré-visualização para conferir o contrato antes de baixar o PDF.">{previewButton}</ActionHelp> : previewButton)}
+                </div>
+              </section>
+            </div>
             <div className="preview-column">
               <PreviewPane document={documentProps} />
             </div>

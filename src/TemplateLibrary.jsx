@@ -31,27 +31,29 @@ export default function TemplateLibrary({ showContracts, onSelect, onResume, sav
         {saved && <button className="button" onClick={onResume}><PencilLine size={16} aria-hidden="true" /> Continuar rascunho</button>}
       </div>
 
-      <nav className="library-menu" aria-label="Tipos de modelo">
-        <a href="#modelos" aria-current={!showContracts ? 'page' : undefined}>
-          <LayoutGrid size={17} aria-hidden="true" /> Documentos
-        </a>
-        <a href="#contratos" className="contracts-menu-item" aria-current={showContracts ? 'page' : undefined}>
-          <FileSignature size={17} aria-hidden="true" /> Contratos
-        </a>
-      </nav>
-      <div className="model-filters">
-        <div className="model-search">
-          <Search size={18} aria-hidden="true" />
-          <label className="sr-only" htmlFor="template-search">Buscar modelos</label>
-          <input id="template-search" type="search" placeholder="Buscar modelos" value={search}
-            onChange={event => setSearch(event.target.value)} />
-        </div>
-        <div className="model-category">
-          <label htmlFor="template-category">Categoria</label>
-          <select id="template-category" value={filter} onChange={event => setFilter(event.target.value)}>
-            <option value="todos">Todas as categorias</option>
-            {categories.map(({ id, label }) => <option key={id} value={id}>{label}</option>)}
-          </select>
+      <div className="library-tools">
+        <nav className="library-menu" aria-label="Tipos de modelo">
+          <a href="#modelos" aria-current={!showContracts ? 'page' : undefined}>
+            <LayoutGrid size={17} aria-hidden="true" /> Documentos
+          </a>
+          <a href="#contratos" className="contracts-menu-item" aria-current={showContracts ? 'page' : undefined}>
+            <FileSignature size={17} aria-hidden="true" /> Contratos
+          </a>
+        </nav>
+        <div className="model-filters">
+          <div className="model-search">
+            <Search size={18} aria-hidden="true" />
+            <label className="sr-only" htmlFor="template-search">Buscar modelos</label>
+            <input id="template-search" type="search" placeholder="Buscar modelos" value={search}
+              onChange={event => setSearch(event.target.value)} />
+          </div>
+          <div className="model-category">
+            <label className="sr-only" htmlFor="template-category">Categoria</label>
+            <select id="template-category" value={filter} onChange={event => setFilter(event.target.value)}>
+              <option value="todos">Todas as categorias</option>
+              {categories.map(({ id, label }) => <option key={id} value={id}>{label}</option>)}
+            </select>
+          </div>
         </div>
       </div>
 
