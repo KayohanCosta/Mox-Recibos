@@ -122,7 +122,7 @@ function PartyFields({ party, change, company, contextual }) {
 
 function DocumentFields({ receipt, change, details }) {
   const proposal = ['proposta', 'orcamento'].includes(receipt.type)
-  const contract = receipt.type === 'contrato'
+  const contract = receipt.type === 'contrato' || details?.contract
   return (
     <>
       <div className="field-row">
@@ -143,7 +143,8 @@ function DocumentFields({ receipt, change, details }) {
         <Field label="Moeda" value={receipt.currency} onChange={change('currency')} options={currencyOptions} />
       </div>}
       <Field label={details?.notes ?? 'Observações'} type="textarea" value={receipt.notes} onChange={change('notes')}
-        placeholder={details ? 'Informações adicionais' : 'Informações adicionais ou instruções de pagamento'} />
+        placeholder={details?.contract ? 'Insira as cláusulas e condições acordadas entre as partes'
+          : details ? 'Informações adicionais' : 'Informações adicionais ou instruções de pagamento'} />
     </>
   )
 }

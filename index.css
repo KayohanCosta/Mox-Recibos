@@ -51,14 +51,15 @@ h1[tabindex]:focus, h2[tabindex]:focus, .preview-column:focus { outline: none; }
 }
 .library h1 { font-size: clamp(34px, 5vw, 52px); line-height: 1.08; letter-spacing: -.062em; }
 .library-intro p { margin-top: 14px; font-size: 16px; color: var(--muted); }
-.model-search { position: relative; max-width: 390px; margin-top: 28px; }
+.model-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: 28px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+.model-search { position: relative; flex: 1 1 265px; max-width: 390px; }
 .model-search svg { position: absolute; top: 13px; left: 12px; color: var(--muted); pointer-events: none; }
 .model-search input { width: 100%; min-height: 44px; padding: 9px 12px 9px 39px; border: 1px solid var(--input-line); border-radius: 8px; background: var(--surface); font-size: 16px; }
 .model-search input::placeholder, .empty-models { color: var(--muted); }
 .empty-models { padding-block: 28px; }
-.filters { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 13px; padding-bottom: 15px; border-bottom: 1px solid var(--line); }
-.filters button { border-radius: 7px; padding: 7px 12px; min-height: 36px; color: var(--muted); font-weight: 550; }
-.filters button[aria-pressed=true], .filters button:hover { color: var(--accent-dark); background: var(--accent-soft); }
+.model-category { display: flex; align-items: center; gap: 8px; }
+.model-category label { font-weight: 600; }
+.model-category select { min-height: 44px; min-width: 180px; padding: 8px 12px; border: 1px solid var(--input-line); border-radius: 8px; background: var(--surface); font-size: 16px; }
 .model-group { margin-top: 27px; }
 .model-group h2 { margin-bottom: 12px; font-size: 17px; letter-spacing: -.025em; }
 .model-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
@@ -180,6 +181,8 @@ body:has(.preview-dialog[open]) { overflow: hidden; }
 }
 
 @media (max-width: 460px) {
+  .model-category, .model-search { width: 100%; }
+  .model-category select { flex: 1; min-width: 0; }
   .layout-width, .topbar-inner { width: calc(100% - 28px); }
   .topbar-inner { min-height: 60px; }
   .topbar nav a { padding-inline: 8px; min-height: 40px; }

@@ -1,4 +1,5 @@
-import { BedDouble, BriefcaseBusiness, Building2, CalendarDays, ClipboardList, Dumbbell, GraduationCap, HeartHandshake, House, Laptop, PackageCheck, Palette, Receipt, ShoppingBag, Truck, Wrench } from 'lucide-react'
+import { BedDouble, BriefcaseBusiness, Building2, CalendarDays, ClipboardList, Dumbbell, FileSignature, GraduationCap, HeartHandshake, House, Laptop, PackageCheck, Palette, Receipt, ShoppingBag, Truck, Wrench } from 'lucide-react'
+import { contractModels } from './contractModels.js'
 
 // Each model uses one of the existing print layouts. A total enables monetary fields.
 const groups = [
@@ -9,6 +10,7 @@ const groups = [
       ['recibo-parcela', 'Recibo de parcela', 'Identifique a parcela e o pagamento recebido.', 'Quem recebeu', 'Quem pagou', 'Parcelas pagas', 'Total recebido'],
       ['recibo-caucao', 'Recibo de caução', 'Registre o valor recebido como garantia.', 'Quem recebeu a caução', 'Depositante', 'Valores recebidos', 'Total recebido'],
       ['recibo-devolucao', 'Recibo de devolução de valores', 'Comprove a devolução integral ou parcial de um pagamento.', 'Responsável pela devolução', 'Beneficiário', 'Valores devolvidos', 'Total devolvido'],
+      ['recibo-pagamento-parcial', 'Recibo de pagamento parcial', 'Identifique o valor recebido como parte de um pagamento.', 'Quem recebeu', 'Quem pagou', 'Pagamentos parciais', 'Total recebido'],
     ],
   },
   {
@@ -17,6 +19,7 @@ const groups = [
       ['relatorio-manutencao', 'Relatório de manutenção', 'Liste inspeções, ajustes e reparos executados.', 'Responsável pela manutenção', 'Solicitante', 'Inspeções e reparos'],
       ['comprovante-visita', 'Comprovante de visita técnica', 'Registre o atendimento e as verificações da visita.', 'Técnico responsável', 'Cliente', 'Verificações realizadas'],
       ['aceite-servico', 'Termo de aceite de serviço', 'Relacione as entregas apresentadas para aceite.', 'Prestador de serviços', 'Responsável pelo aceite', 'Entregas para aceite'],
+      ['relatorio-instalacao', 'Relatório de instalação', 'Registre equipamentos instalados, verificações e testes realizados.', 'Responsável pela instalação', 'Solicitante', 'Instalações e testes'],
     ],
   },
   {
@@ -31,6 +34,7 @@ const groups = [
       ['pedido-compra', 'Pedido de compra', 'Formalize a solicitação de produtos a um fornecedor.', 'Comprador', 'Fornecedor', 'Produtos solicitados', 'Total do pedido'],
       ['pedido-venda', 'Pedido de venda', 'Registre produtos, quantidades e valores combinados.', 'Vendedor', 'Comprador', 'Produtos vendidos', 'Total do pedido'],
       ['demonstrativo-cobranca', 'Demonstrativo de cobrança', 'Detalhe os valores de uma cobrança em aberto.', 'Responsável pela cobrança', 'Cliente', 'Valores cobrados', 'Total devido'],
+      ['demonstrativo-venda-consignacao', 'Demonstrativo de venda em consignação', 'Relacione produtos vendidos e valores a repassar.', 'Responsável pelas vendas', 'Fornecedor', 'Produtos vendidos', 'Total a repassar'],
     ],
   },
   {
@@ -39,6 +43,7 @@ const groups = [
       ['comprovante-retirada', 'Comprovante de retirada', 'Liste os volumes retirados e identifique o responsável.', 'Responsável pela entrega', 'Responsável pela retirada', 'Volumes retirados'],
       ['devolucao-mercadoria', 'Comprovante de devolução de mercadoria', 'Registre os produtos devolvidos e suas quantidades.', 'Responsável pela devolução', 'Destinatário', 'Produtos devolvidos'],
       ['transferencia-estoque', 'Registro de transferência de estoque', 'Identifique a origem, o destino e os itens movimentados.', 'Unidade de origem', 'Unidade de destino', 'Itens transferidos'],
+      ['registro-conferencia-recebimento', 'Registro de conferência de mercadorias', 'Registre as quantidades recebidas e indique divergências nas observações.', 'Responsável pela conferência', 'Fornecedor ou transportador', 'Mercadorias conferidas'],
     ],
   },
   {
@@ -46,6 +51,7 @@ const groups = [
       ['recibo-aluguel', 'Recibo de aluguel', 'Registre o pagamento do aluguel e o período correspondente.', 'Locador', 'Locatário', 'Períodos e valores', 'Total recebido'],
       ['entrega-chaves', 'Termo de entrega de chaves', 'Identifique as chaves entregues e quem as recebeu.', 'Responsável pela entrega', 'Responsável pelo recebimento', 'Chaves e acessos'],
       ['relatorio-vistoria', 'Relatório de vistoria de imóvel', 'Relacione ambientes, itens inspecionados e observações.', 'Responsável pela vistoria', 'Interessado', 'Ambientes e itens vistoriados'],
+      ['recibo-taxa-condominio', 'Recibo de taxa de condomínio', 'Registre as cotas pagas e os períodos correspondentes.', 'Condomínio ou administradora', 'Responsável pela unidade', 'Cotas recebidas', 'Total recebido'],
     ],
   },
   {
@@ -53,6 +59,7 @@ const groups = [
       ['declaracao-participacao', 'Declaração de participação', 'Registre a participação em oficinas, cursos ou atividades.', 'Organização responsável', 'Participante', 'Atividades e carga horária'],
       ['comprovante-material', 'Comprovante de entrega de material didático', 'Liste os materiais entregues ao aluno ou responsável.', 'Instituição de ensino', 'Aluno ou responsável', 'Materiais entregues'],
       ['recibo-mensalidade', 'Recibo de mensalidade escolar', 'Identifique as mensalidades recebidas e seus períodos.', 'Instituição de ensino', 'Responsável financeiro', 'Mensalidades pagas', 'Total recebido'],
+      ['recibo-matricula', 'Recibo de matrícula', 'Registre a taxa de matrícula recebida para um curso ou período letivo.', 'Instituição de ensino', 'Aluno ou responsável', 'Taxas de matrícula', 'Total recebido'],
     ],
   },
   {
@@ -60,6 +67,7 @@ const groups = [
       ['confirmacao-inscricao', 'Confirmação de inscrição', 'Registre inscrições em eventos, cursos e oficinas.', 'Organização do evento', 'Participante', 'Inscrições e atividades'],
       ['recibo-inscricao', 'Recibo de inscrição', 'Comprove o recebimento de taxas de inscrição.', 'Organização do evento', 'Participante', 'Inscrições pagas', 'Total recebido'],
       ['entrega-credenciais', 'Comprovante de entrega de credenciais', 'Identifique as credenciais e os materiais retirados.', 'Organização do evento', 'Responsável pela retirada', 'Credenciais e materiais'],
+      ['registro-entrega-estrutura-evento', 'Registro de entrega de estrutura para evento', 'Relacione mobiliário, estruturas e equipamentos entregues no local.', 'Fornecedor da estrutura', 'Organizador do evento', 'Estruturas e equipamentos'],
     ],
   },
   {
@@ -75,6 +83,7 @@ const groups = [
       ['entrega-equipamentos', 'Termo de entrega de equipamentos', 'Registre os equipamentos entregues a uma pessoa ou equipe.', 'Responsável pela entrega', 'Responsável pelos equipamentos', 'Equipamentos entregues'],
       ['emprestimo-bens', 'Termo de empréstimo de bens', 'Relacione os bens emprestados e quem os recebeu.', 'Responsável pelos bens', 'Pessoa que recebeu os bens', 'Bens emprestados'],
       ['relatorio-atividades', 'Relatório de atividades', 'Organize atividades e resultados de uma equipe ou projeto.', 'Responsável pelo relatório', 'Destinatário', 'Atividades e resultados'],
+      ['registro-devolucao-equipamentos', 'Registro de devolução de equipamentos', 'Relacione os equipamentos devolvidos e informe seu estado nas observações.', 'Responsável pela conferência', 'Responsável pela devolução', 'Equipamentos devolvidos'],
     ],
   },
   {
@@ -117,6 +126,7 @@ const groups = [
       ['relatorio-suporte-ti', 'Relatório de atendimento de TI', 'Documente chamados atendidos, ações executadas e resultados.', 'Equipe de suporte', 'Solicitante', 'Chamados e ações realizadas'],
       ['aceite-entrega-software', 'Termo de aceite de entrega de software', 'Relacione funcionalidades e versões apresentadas para conferência.', 'Equipe responsável pela entrega', 'Responsável pelo aceite', 'Funcionalidades e versões entregues'],
       ['registro-inventario-ti', 'Registro de inventário de TI', 'Liste equipamentos, licenças ou ativos conferidos.', 'Equipe de TI', 'Unidade responsável', 'Ativos conferidos'],
+      ['registro-entrega-acessos', 'Registro de entrega de acessos', 'Identifique sistemas e perfis disponibilizados ao destinatário.', 'Equipe de TI', 'Responsável pelos acessos', 'Sistemas e perfis'],
     ],
   },
   {
@@ -132,6 +142,7 @@ const groups = [
       ['proposta-producao-audiovisual', 'Proposta de produção audiovisual', 'Detalhe roteiro, captação, edição e arquivos finais.', 'Produtora ou profissional', 'Cliente', 'Etapas de produção e entregas', 'Total da proposta'],
       ['orcamento-edicao-video', 'Orçamento de edição de vídeo', 'Estime montagem, revisões, legendagem e versões finais.', 'Editor ou estúdio', 'Cliente', 'Serviços de edição', 'Total estimado'],
       ['orcamento-impressao-grafica', 'Orçamento de impressão gráfica', 'Especifique tiragens, acabamentos e valores de materiais impressos.', 'Gráfica ou fornecedor', 'Cliente', 'Tiragens e acabamentos', 'Total estimado'],
+      ['proposta-producao-editorial', 'Proposta de produção editorial', 'Apresente as etapas de revisão, diagramação e preparação de arquivos.', 'Profissional ou editora', 'Cliente', 'Etapas e arquivos', 'Total da proposta'],
     ],
   },
 ]
@@ -142,16 +153,22 @@ const dateLabels = {
   'relatorio-servicos': 'Data do relatório',
 }
 
-export const expandedTemplates = groups.flatMap(({ category, layout, icon, models }) =>
+const contracts = Object.entries(contractModels).map(([category, models]) => ({
+  category, layout: 'comercial', icon: FileSignature, contract: true,
+  models: models.map(model => [...model, 'Total do contrato']),
+}))
+
+export const expandedTemplates = [...groups, ...contracts].flatMap(({ category, layout, icon, models, contract }) =>
   models.map(([id, name, description, issuer, recipient, items, total]) => ({
     id, category, layout, icon: id === 'relatorio-servicos' ? ClipboardList : icon, name, description,
     details: {
       party: [issuer, recipient],
-      date: dateLabels[id] ?? 'Data de emissão',
+      date: contract ? 'Data do contrato' : dateLabels[id] ?? 'Data de emissão',
       items,
       total,
       due: layout !== 'recibo',
-      notes: layout === 'comercial' ? 'Termos e condições' : 'Observações',
+      contract,
+      notes: contract ? 'Cláusulas e condições' : layout === 'comercial' ? 'Termos e condições' : 'Observações',
     },
   })),
 )

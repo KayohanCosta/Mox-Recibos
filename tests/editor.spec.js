@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { templates } from '../src/templates.js'
+import { categories, templates } from '../src/templates.js'
 
 const wcag = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']
 
@@ -13,7 +13,7 @@ async function checkEditorAccessibility(page) {
 
 test('searches, filters and opens models in the expanded library', async ({ page }) => {
   await page.goto('/')
-  await expect(page.locator('.model-card')).toHaveCount(67)
+  await expect(page.locator('.model-card')).toHaveCount(102)
   await checkEditorAccessibility(page)
   const search = page.getByRole('searchbox', { name: 'Buscar modelos' })
   await search.fill('locacao inexistente')
@@ -25,10 +25,15 @@ test('searches, filters and opens models in the expanded library', async ({ page
   await expect(page.locator('.model-card')).toHaveCount(1)
   await expect(page.locator('.model-card')).toContainText('Recibo de caução')
   await search.clear()
-  await page.getByRole('button', { name: 'Hospedagem', exact: true }).click()
-  await expect(page.locator('.model-card')).toHaveCount(5)
-  await page.getByRole('button', { name: 'Serviços', exact: true }).click()
+  const category = page.getByRole('combobox', { name: 'Categoria' })
+  await category.selectOption('hospedagem')
   await expect(page.locator('.model-card')).toHaveCount(6)
+  await search.fill('contrato')
+  await expect(page.locator('.model-card')).toHaveCount(1)
+  await expect(page.locator('.model-card')).toContainText('Contrato de hospedagem')
+  await search.clear()
+  await category.selectOption('servicos')
+  await expect(page.locator('.model-card')).toHaveCount(10)
   await page.getByRole('button', { name: 'Ordem de serviço' }).click()
   await expect(page.getByRole('heading', { name: 'Ordem de serviço', exact: true })).toBeFocused()
   await page.getByRole('button', { name: 'Documento', exact: true }).click()
@@ -172,4 +177,31 @@ test('every added model renders in its assigned print layout', async ({ page }) 
     await expect(preview.getByText(model.name.toLocaleUpperCase('pt-BR'), { exact: true })).toBeVisible()
     await expect(preview.getByText(layoutMarkers[model.layout], { exact: true })).toBeVisible()
   }
+})
+
+test('offers contracts in every category and exports clauses and validity', async ({ page }) => {
+  const contracts = templates.filter(model => model.details?.contract)
+  expect(contracts).toHaveLength(25)
+  expect(new Set(contracts.map(model => model.category))).toEqual(new Set(categories.map(category => category.id)))
+  expect(contracts.every(model => model.layout === 'comercial')).toBe(true)
+
+  await page.setViewportSize({ width: 320, height: 800 })
+  await page.goto('/')
+  const category = page.getByRole('combobox', { name: 'Categoria' })
+  await expect(category).toBeVisible()
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(320)
+  await category.selectOption('imoveis')
+  await page.getByRole('button', { name: /^Contrato de locação residencial/ }).click()
+  await page.getByRole('navigation', { name: 'Seções do editor' }).getByRole('button', { name: 'Documento' }).click()
+  await page.getByLabel('Data do contrato').fill('2026-11-12')
+  await page.getByLabel('Fim da vigência').fill('2027-11-12')
+  await page.getByLabel('Cláusulas e condições').fill('Texto acordado entre as partes.')
+  const preview = page.getByRole('region', { name: 'Pré-visualização', exact: true })
+  await expect(preview.getByText('Texto acordado entre as partes.')).toBeVisible()
+  await expect(preview.getByText(/Fim da vigência:.*12\/11\/2027/)).toBeVisible()
+  const pending = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Baixar PDF' }).click()
+  const download = await pending
+  expect(download.suggestedFilename()).toMatch(/^contrato-locacao-residencial-.*\.pdf$/)
+  expect((await readFile(await download.path())).subarray(0, 5).toString()).toBe('%PDF-')
 })

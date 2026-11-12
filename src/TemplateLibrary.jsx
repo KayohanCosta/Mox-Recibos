@@ -28,16 +28,20 @@ export default function TemplateLibrary({ onSelect, onResume, saved, current }) 
         {saved && <button className="button" onClick={onResume}><PencilLine size={16} aria-hidden="true" /> Continuar rascunho</button>}
       </div>
 
-      <div className="model-search">
-        <Search size={18} aria-hidden="true" />
-        <label className="sr-only" htmlFor="template-search">Buscar modelos</label>
-        <input id="template-search" type="search" placeholder="Buscar modelos" value={search}
-          onChange={event => setSearch(event.target.value)} />
-      </div>
-      <div className="filters" role="group" aria-label="Filtrar modelos">
-        {[{ id: 'todos', label: 'Todos' }, ...categories].map(({ id, label }) => (
-          <button key={id} aria-pressed={filter === id} onClick={() => setFilter(id)}>{label}</button>
-        ))}
+      <div className="model-filters">
+        <div className="model-search">
+          <Search size={18} aria-hidden="true" />
+          <label className="sr-only" htmlFor="template-search">Buscar modelos</label>
+          <input id="template-search" type="search" placeholder="Buscar modelos" value={search}
+            onChange={event => setSearch(event.target.value)} />
+        </div>
+        <div className="model-category">
+          <label htmlFor="template-category">Categoria</label>
+          <select id="template-category" value={filter} onChange={event => setFilter(event.target.value)}>
+            <option value="todos">Todas as categorias</option>
+            {categories.map(({ id, label }) => <option key={id} value={id}>{label}</option>)}
+          </select>
+        </div>
       </div>
 
       {visibleCategories.length === 0 && <p className="empty-models" role="status">Nenhum modelo encontrado.</p>}

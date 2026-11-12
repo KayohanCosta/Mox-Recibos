@@ -343,17 +343,17 @@ function LayoutComercial({ company, client, receipt, items, subtotal, details, t
               </div>
           </div>
 
-          {receipt.notes && (
+          {(receipt.notes || details?.contract) && (
              <div style={{ marginBottom: '40px' }}>
                 <div style={{ fontFamily: 'Cabinet Grotesk, sans-serif', fontWeight: 800, fontSize: '16px', color: '#171e19', marginBottom: '16px', borderBottom: '2px solid #171e19', paddingBottom: '8px' }}>
-                   Termos & Condições
+                   {details?.contract ? details.notes : 'Termos & Condições'}
                 </div>
                 <div style={{ fontSize: '13px', color: '#444', lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>
                    {receipt.notes}
                 </div>
                 <div style={{ marginTop: '16px', fontSize: '13px', color: '#444' }}>
                    <strong>Condição de Pagamento:</strong> {PAYMENT_LABELS[receipt.paymentMethod] || 'A combinar'}
-                   {receipt.dueDate && <span> | <strong>Validade/Vencimento:</strong> {formatDate(receipt.dueDate)}</span>}
+                   {receipt.dueDate && <span> | <strong>{details?.contract ? 'Fim da vigência:' : 'Validade/Vencimento:'}</strong> {formatDate(receipt.dueDate)}</span>}
                 </div>
              </div>
           )}
