@@ -93,6 +93,9 @@ h1[tabindex]:focus, h2[tabindex]:focus, .preview-column:focus { outline: none; }
 .library-footer nav { display: flex; flex-wrap: wrap; gap: 4px 18px; }
 .library-footer nav a { display: inline-flex; align-items: center; min-height: 40px; color: var(--muted); font-size: 13px; }
 .library-footer nav a:hover { color: var(--accent-dark); text-decoration: underline; }
+.footer-credits p { color: var(--muted); font-size: 13px; }
+.footer-credits strong { color: var(--ink); }
+.footer-copyright { border-top: 1px solid var(--line); padding-block: 11px 14px; color: var(--muted); }
 
 .button, .icon-button, .zoom-value {
   display: inline-flex; justify-content: center; align-items: center; gap: 8px;
