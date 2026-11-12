@@ -1,6 +1,6 @@
 import { useId, useState } from 'react'
 import { ImagePlus, Plus, Trash2 } from 'lucide-react'
-import { itemTotal, money, newItem, templates } from './src/templates.js'
+import { categories, documentDetails, itemTotal, money, newItem, templates } from './src/templates.js'
 
 const paymentOptions = [
   ['pix', 'Pix'], ['transferencia', 'Transferência'], ['boleto', 'Boleto'],
@@ -9,8 +9,12 @@ const paymentOptions = [
 ]
 const currencyOptions = [['BRL', 'BRL · Real'], ['USD', 'USD · Dólar'], ['EUR', 'EUR · Euro']]
 const unitOptions = ['un', 'hr', 'dia', 'mês', 'kg', 'm²', 'km', 'proj'].map(unit => [unit, unit])
+const templateOptions = categories.map(category => ({
+  ...category,
+  options: templates.filter(template => template.category === category.id).map(({ id, name }) => [id, name]),
+}))
 
-function Field({ label, value, onChange, type = 'text', placeholder, options, validate, min, autoComplete }) {
+function Field({ label, value, onChange, type = 'text', placeholder, options, groups, validate, min, autoComplete }) {
   const id = useId()
   const [touched, setTouched] = useState(false)
   const error = touched && validate?.(value)
@@ -23,8 +27,15 @@ function Field({ label, value, onChange, type = 'text', placeholder, options, va
   return (
     <div className="field">
       <label htmlFor={id}>{label}</label>
-      {options
-        ? <select {...props}>{options.map(([key, name]) => <option key={key} value={key}>{name}</option>)}</select>
+      {options || groups
+        ? <select {...props}>
+            {options?.map(([key, name]) => <option key={key} value={key}>{name}</option>)}
+            {groups?.map(group => (
+              <optgroup key={group.id} label={group.label}>
+                {group.options.map(([key, name]) => <option key={key} value={key}>{name}</option>)}
+              </optgroup>
+            ))}
+          </select>
         : type === 'textarea'
           ? <textarea {...props} rows={4} placeholder={placeholder} />
           : <input {...props} type={type} placeholder={placeholder} min={min}
@@ -90,10 +101,10 @@ function LogoField({ logo, onChange }) {
 const emailError = value => value && !/^[^\s@]+@[^\s@]+$/.test(value) && 'Informe um e-mail válido.'
 const amountError = value => Number(value) < 0 && 'Informe um valor igual ou maior que zero.'
 
-function PartyFields({ party, change, company }) {
+function PartyFields({ party, change, company, contextual }) {
   return (
     <>
-      <Field label={company ? 'Nome da empresa' : 'Nome ou razão social'} value={party.name} onChange={change('name')}
+      <Field label={company && !contextual ? 'Nome da empresa' : 'Nome ou razão social'} value={party.name} onChange={change('name')}
         placeholder={company ? 'Ex.: Estúdio Almeida' : 'Ex.: Marina Costa'} autoComplete={company ? 'organization' : 'name'} />
       <div className="field-row">
         <Field label={company ? 'CNPJ' : 'CPF ou CNPJ'} value={company ? party.cnpj : party.cpfCnpj}
@@ -109,36 +120,37 @@ function PartyFields({ party, change, company }) {
   )
 }
 
-function DocumentFields({ receipt, change }) {
+function DocumentFields({ receipt, change, details }) {
   const proposal = ['proposta', 'orcamento'].includes(receipt.type)
   const contract = receipt.type === 'contrato'
   return (
     <>
       <div className="field-row">
         <Field label="Tipo de documento" value={receipt.type} onChange={change('type')}
-          options={templates.map(({ id, name }) => [id, name])} />
+          groups={templateOptions} />
         <Field label="Número do documento" value={receipt.number} onChange={change('number')} placeholder="001" />
       </div>
       <div className="field-row">
-        <Field label={proposal ? 'Data da proposta' : contract ? 'Data do contrato' : 'Data de emissão'}
+        <Field label={details?.date ?? (proposal ? 'Data da proposta' : contract ? 'Data do contrato' : 'Data de emissão')}
           type="date" value={receipt.date} onChange={change('date')} />
-        <Field label={proposal ? 'Válido até' : contract ? 'Fim da vigência' : 'Data de vencimento'}
+        {(!details || details.due) && <Field label={proposal ? 'Válido até' : contract ? 'Fim da vigência' : 'Data de vencimento'}
           type="date" value={receipt.dueDate} onChange={change('dueDate')}
-          validate={value => value && receipt.date && value < receipt.date && 'A data deve ser igual ou posterior à data inicial.'} />
+          validate={value => value && receipt.date && value < receipt.date && 'A data deve ser igual ou posterior à data inicial.'} />}
       </div>
-      <div className="field-row">
+      {(!details || details.total) && <div className="field-row">
         <Field label={proposal || contract ? 'Condição de pagamento' : 'Forma de pagamento'} value={receipt.paymentMethod}
           onChange={change('paymentMethod')} options={paymentOptions} />
         <Field label="Moeda" value={receipt.currency} onChange={change('currency')} options={currencyOptions} />
-      </div>
-      <Field label="Observações" type="textarea" value={receipt.notes} onChange={change('notes')}
-        placeholder="Informações adicionais ou instruções de pagamento" />
+      </div>}
+      <Field label={details?.notes ?? 'Observações'} type="textarea" value={receipt.notes} onChange={change('notes')}
+        placeholder={details ? 'Informações adicionais' : 'Informações adicionais ou instruções de pagamento'} />
     </>
   )
 }
 
-function ItemsFields({ items, subtotal, currency, update }) {
+function ItemsFields({ items, subtotal, currency, update, details }) {
   const addButtonId = useId()
+  const showPrices = !details || Boolean(details.total)
   return (
     <>
       {items.map((item, index) => {
@@ -151,31 +163,32 @@ function ItemsFields({ items, subtotal, currency, update }) {
                 update(current => current.filter(row => row.id !== item.id))
                 document.getElementById(addButtonId)?.focus()
               }}><Trash2 size={17} aria-hidden="true" /></button>}
-            <Field label="Descrição" value={item.description} onChange={change('description')} placeholder="Serviço ou produto" />
-            <div className="field-row item-row">
+            <Field label="Descrição" value={item.description} onChange={change('description')} placeholder={details?.items ?? 'Serviço ou produto'} />
+            <div className={showPrices ? 'field-row item-row' : 'field-row'}>
               <Field label="Quantidade" type="number" min="0" value={item.quantity} onChange={change('quantity')} validate={amountError} />
               <Field label="Unidade" value={item.unit} onChange={change('unit')} options={unitOptions} />
-              <Field label={`Valor (${currency})`} type="number" min="0" value={item.unitPrice} onChange={change('unitPrice')} validate={amountError} />
+              {showPrices && <Field label={`Valor (${currency})`} type="number" min="0" value={item.unitPrice} onChange={change('unitPrice')} validate={amountError} />}
             </div>
-            <div className="item-total">Subtotal <strong>{money(itemTotal(item), currency)}</strong></div>
+            {showPrices && <div className="item-total">Subtotal <strong>{money(itemTotal(item), currency)}</strong></div>}
           </fieldset>
         )
       })}
       <button className="button" id={addButtonId}
         onClick={() => update(current => [...current, newItem(crypto.randomUUID())])}><Plus size={16} aria-hidden="true" /> Adicionar item</button>
-      <div className="grand-total"><span>Total do documento</span><strong>{money(subtotal, currency)}</strong></div>
+      {showPrices && <div className="grand-total"><span>{details?.total ?? 'Total do documento'}</span><strong>{money(subtotal, currency)}</strong></div>}
     </>
   )
 }
 
 export default function FormSection({ activeTab, draft, update, subtotal }) {
   const change = section => field => value => update(section, current => ({ ...current, [field]: value }))
+  const details = documentDetails[draft.receipt.type]
   return (
     <div className="form-fields" key={activeTab}>
-      {activeTab === 'empresa' && <PartyFields party={draft.company} change={change('company')} company />}
+      {activeTab === 'empresa' && <PartyFields party={draft.company} change={change('company')} company contextual={Boolean(details)} />}
       {activeTab === 'cliente' && <PartyFields party={draft.client} change={change('client')} />}
-      {activeTab === 'documento' && <DocumentFields receipt={draft.receipt} change={change('receipt')} />}
-      {activeTab === 'itens' && <ItemsFields items={draft.items} currency={draft.receipt.currency} subtotal={subtotal}
+      {activeTab === 'documento' && <DocumentFields receipt={draft.receipt} change={change('receipt')} details={details} />}
+      {activeTab === 'itens' && <ItemsFields items={draft.items} currency={draft.receipt.currency} subtotal={subtotal} details={details}
         update={next => update('items', next)} />}
     </div>
   )

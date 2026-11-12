@@ -1,9 +1,17 @@
 import { ClipboardList, FileCheck, FileSignature, FileText, Receipt, ScrollText, Wrench } from 'lucide-react'
+import { expandedTemplates } from './expandedTemplates.js'
 
 export const categories = [
   { id: 'financeiro', label: 'Financeiro' },
   { id: 'servicos', label: 'Serviços' },
   { id: 'comercial', label: 'Comercial' },
+  { id: 'vendas', label: 'Vendas' },
+  { id: 'logistica', label: 'Logística' },
+  { id: 'imoveis', label: 'Imóveis' },
+  { id: 'educacao', label: 'Educação' },
+  { id: 'eventos', label: 'Eventos' },
+  { id: 'organizacoes', label: 'Organizações' },
+  { id: 'administrativo', label: 'Administrativo' },
 ]
 
 export const templates = [
@@ -14,7 +22,11 @@ export const templates = [
   { id: 'proposta', category: 'comercial', name: 'Proposta comercial', description: 'Apresente escopo, valores e condições.', icon: FileCheck },
   { id: 'orcamento', category: 'comercial', name: 'Orçamento', description: 'Estime o custo de produtos ou serviços.', icon: ScrollText },
   { id: 'contrato', category: 'comercial', name: 'Contrato', description: 'Documente um acordo entre as partes.', icon: FileSignature },
+  ...expandedTemplates,
 ]
+
+export const documentDetails = Object.fromEntries(expandedTemplates.map(({ id, details }) => [id, details]))
+export const templateById = Object.fromEntries(templates.map(template => [template.id, template]))
 
 export const newItem = (id) => ({ id, description: '', quantity: '1', unit: 'un', unitPrice: '' })
 export const itemTotal = ({ quantity, unitPrice }) => (parseFloat(quantity) || 0) * (parseFloat(unitPrice) || 0)

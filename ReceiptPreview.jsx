@@ -1,5 +1,6 @@
 import { forwardRef } from 'react'
 import { Icon } from '@iconify/react'
+import { templateById } from './src/templates.js'
 
 const DOC_TYPES = {
   'recibo': 'RECIBO',
@@ -42,8 +43,11 @@ function getLayoutType(type) {
 // -------------------------------------------------------------
 // MODELO PADRÃO (Recibo / Nota de Serviço)
 // -------------------------------------------------------------
-function LayoutRecibo({ company, client, receipt, items, subtotal }) {
-  const docTitle = DOC_TYPES[receipt.type] || 'RECIBO'
+function LayoutRecibo({ company, client, receipt, items, subtotal, details, title }) {
+  const docTitle = title || DOC_TYPES[receipt.type] || 'RECIBO'
+  const showPrices = !details || Boolean(details.total)
+  const columns = showPrices ? '3fr 80px 70px 100px 110px' : '3fr 80px 70px'
+  const headers = showPrices ? ['DESCRIÇÃO', 'QTD', 'UNIT', 'PREÇO UN.', 'TOTAL'] : ['DESCRIÇÃO', 'QTD', 'UNIT']
   return (
     <>
       <div style={{ background: '#171e19', padding: '32px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -71,8 +75,8 @@ function LayoutRecibo({ company, client, receipt, items, subtotal }) {
             {docTitle}
           </div>
           <div style={{ color: '#ffffff', fontFamily: 'Cabinet Grotesk, sans-serif', fontWeight: 700, fontSize: '22px' }}>#{receipt.number}</div>
-          <div style={{ color: '#888888', fontSize: '12px', marginTop: '4px' }}>Emissão: {formatDate(receipt.date)}</div>
-          {receipt.dueDate && <div style={{ color: '#ffe17c', fontSize: '12px', marginTop: '2px' }}>Vence: {formatDate(receipt.dueDate)}</div>}
+          <div style={{ color: '#888888', fontSize: '12px', marginTop: '4px' }}>{details?.date ?? 'Emissão'}: {formatDate(receipt.date)}</div>
+          {!details && receipt.dueDate && <div style={{ color: '#ffe17c', fontSize: '12px', marginTop: '2px' }}>Vence: {formatDate(receipt.dueDate)}</div>}
         </div>
       </div>
 
@@ -80,7 +84,7 @@ function LayoutRecibo({ company, client, receipt, items, subtotal }) {
 
       <div style={{ padding: '36px 48px' }}>
         <div style={{ marginBottom: '32px' }}>
-          <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: '#aaaaaa', fontFamily: 'Cabinet Grotesk, sans-serif', marginBottom: '10px' }}>FATURAR PARA</div>
+          <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: '#aaaaaa', fontFamily: 'Cabinet Grotesk, sans-serif', marginBottom: '10px' }}>{details?.party[1] ?? 'FATURAR PARA'}</div>
           <div style={{ background: '#f8f8f8', borderRadius: '12px', padding: '18px 22px', borderLeft: '4px solid #ffe17c' }}>
             <div style={{ fontFamily: 'Cabinet Grotesk, sans-serif', fontWeight: 700, fontSize: '18px', marginBottom: '4px' }}>{client.name || <span style={{ color: '#cccccc' }}>Nome do Cliente</span>}</div>
             <div style={{ display: 'flex', gap: '32px', flexWrap: 'wrap', marginTop: '6px' }}>
@@ -93,24 +97,24 @@ function LayoutRecibo({ company, client, receipt, items, subtotal }) {
         </div>
 
         <div style={{ marginBottom: '24px' }}>
-          <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: '#aaaaaa', fontFamily: 'Cabinet Grotesk, sans-serif', marginBottom: '12px' }}>ITENS / SERVIÇOS</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '3fr 80px 70px 100px 110px', background: '#171e19', borderRadius: '8px 8px 0 0', padding: '10px 16px' }}>
-            {['DESCRIÇÃO', 'QTD', 'UNIT', 'PREÇO UN.', 'TOTAL'].map((h, i) => (
+          <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: '#aaaaaa', fontFamily: 'Cabinet Grotesk, sans-serif', marginBottom: '12px' }}>{details?.items ?? 'ITENS / SERVIÇOS'}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: columns, background: '#171e19', borderRadius: '8px 8px 0 0', padding: '10px 16px' }}>
+            {headers.map((h, i) => (
               <div key={h} style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '1.5px', fontFamily: 'Cabinet Grotesk, sans-serif', color: '#ffe17c', textAlign: i > 0 ? 'right' : 'left' }}>{h}</div>
             ))}
           </div>
           {items.map((item, idx) => (
-            <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '3fr 80px 70px 100px 110px', padding: '12px 16px', borderBottom: '1px solid #eeeeee', background: idx % 2 === 0 ? '#ffffff' : '#fafafa' }}>
+            <div key={item.id} style={{ display: 'grid', gridTemplateColumns: columns, padding: '12px 16px', borderBottom: '1px solid #eeeeee', background: idx % 2 === 0 ? '#ffffff' : '#fafafa' }}>
               <div style={{ fontSize: '13px', color: '#222222', paddingRight: '8px' }}>{item.description || <span style={{ color: '#cccccc' }}>—</span>}</div>
               <div style={{ fontSize: '13px', textAlign: 'right', color: '#444444' }}>{item.quantity}</div>
               <div style={{ fontSize: '13px', textAlign: 'right', color: '#444444' }}>{item.unit}</div>
-              <div style={{ fontSize: '13px', textAlign: 'right', color: '#444444' }}>{formatCurrency(item.unitPrice, receipt.currency)}</div>
-              <div style={{ fontSize: '13px', textAlign: 'right', fontWeight: 600, color: '#171e19' }}>{formatCurrency(item.quantity * item.unitPrice, receipt.currency)}</div>
+              {showPrices && <div style={{ fontSize: '13px', textAlign: 'right', color: '#444444' }}>{formatCurrency(details ? Number(item.unitPrice) : item.unitPrice, receipt.currency)}</div>}
+              {showPrices && <div style={{ fontSize: '13px', textAlign: 'right', fontWeight: 600, color: '#171e19' }}>{formatCurrency(item.quantity * item.unitPrice, receipt.currency)}</div>}
             </div>
           ))}
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '24px' }}>
+        {showPrices && <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '24px' }}>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: '#aaaaaa', fontFamily: 'Cabinet Grotesk, sans-serif', marginBottom: '8px' }}>PAGAMENTO</div>
             <div style={{ background: '#f8f8f8', borderRadius: '10px', padding: '14px 18px', fontSize: '14px', fontWeight: 600, color: '#333333' }}>
@@ -125,12 +129,12 @@ function LayoutRecibo({ company, client, receipt, items, subtotal }) {
               </div>
               <div style={{ height: '1px', background: '#333333', marginBottom: '10px' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontFamily: 'Cabinet Grotesk, sans-serif', fontWeight: 700, fontSize: '14px', color: '#ffffff' }}>TOTAL</span>
+                <span style={{ fontFamily: 'Cabinet Grotesk, sans-serif', fontWeight: 700, fontSize: '14px', color: '#ffffff' }}>{details?.total ?? 'TOTAL'}</span>
                 <span style={{ fontFamily: 'Cabinet Grotesk, sans-serif', fontWeight: 900, fontSize: '22px', color: '#ffe17c' }}>{formatCurrency(subtotal, receipt.currency)}</span>
               </div>
             </div>
           </div>
-        </div>
+        </div>}
 
         {receipt.notes && (
           <div style={{ marginTop: '28px' }}>
@@ -144,7 +148,7 @@ function LayoutRecibo({ company, client, receipt, items, subtotal }) {
         <div style={{ marginTop: '48px', display: 'flex', justifyContent: 'flex-end' }}>
           <div style={{ textAlign: 'center', minWidth: '200px' }}>
             <div style={{ borderTop: '2px solid #171e19', paddingTop: '8px' }}>
-              <div style={{ fontSize: '12px', fontWeight: 600, color: '#333333' }}>{company.name || 'Prestador de Serviços'}</div>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: '#333333' }}>{company.name || details?.party[0] || 'Prestador de Serviços'}</div>
               {company.cnpj && <div style={{ fontSize: '11px', color: '#999999' }}>CNPJ: {company.cnpj}</div>}
             </div>
           </div>
@@ -163,8 +167,8 @@ function LayoutRecibo({ company, client, receipt, items, subtotal }) {
 // -------------------------------------------------------------
 // MODELO FATURA (Fatura / Ordem de Serviço)
 // -------------------------------------------------------------
-function LayoutFatura({ company, client, receipt, items, subtotal }) {
-  const docTitle = DOC_TYPES[receipt.type] || 'FATURA'
+function LayoutFatura({ company, client, receipt, items, subtotal, details, title }) {
+  const docTitle = title || DOC_TYPES[receipt.type] || 'FATURA'
   return (
     <>
       <div style={{ padding: '48px', borderBottom: '4px solid #171e19' }}>
@@ -187,7 +191,7 @@ function LayoutFatura({ company, client, receipt, items, subtotal }) {
 
         <div style={{ display: 'flex', gap: '48px' }}>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: '#aaaaaa', fontFamily: 'Cabinet Grotesk, sans-serif', marginBottom: '8px' }}>DE (FORNECEDOR)</div>
+            <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: '#aaaaaa', fontFamily: 'Cabinet Grotesk, sans-serif', marginBottom: '8px' }}>{details?.party[0] ?? 'DE (FORNECEDOR)'}</div>
             <div style={{ fontSize: '14px', fontWeight: 700, color: '#171e19', marginBottom: '4px' }}>{company.name || 'Nome da Empresa'}</div>
             {company.cnpj && <div style={{ fontSize: '12px', color: '#555' }}>CNPJ: {company.cnpj}</div>}
             {company.address && <div style={{ fontSize: '12px', color: '#555' }}>{company.address}</div>}
@@ -196,7 +200,7 @@ function LayoutFatura({ company, client, receipt, items, subtotal }) {
           </div>
           
           <div style={{ flex: 1, paddingLeft: '24px', borderLeft: '2px dashed #eeeeee' }}>
-            <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: '#aaaaaa', fontFamily: 'Cabinet Grotesk, sans-serif', marginBottom: '8px' }}>PARA (CLIENTE)</div>
+            <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: '#aaaaaa', fontFamily: 'Cabinet Grotesk, sans-serif', marginBottom: '8px' }}>{details?.party[1] ?? 'PARA (CLIENTE)'}</div>
             <div style={{ fontSize: '14px', fontWeight: 700, color: '#171e19', marginBottom: '4px' }}>{client.name || 'Nome do Cliente'}</div>
             {client.cpfCnpj && <div style={{ fontSize: '12px', color: '#555' }}>Doc: {client.cpfCnpj}</div>}
             {client.address && <div style={{ fontSize: '12px', color: '#555' }}>{client.address}</div>}
@@ -228,7 +232,7 @@ function LayoutFatura({ company, client, receipt, items, subtotal }) {
       <div style={{ padding: '36px 48px' }}>
         <div style={{ marginBottom: '32px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '3fr 80px 70px 100px 110px', borderBottom: '2px solid #171e19', paddingBottom: '10px', marginBottom: '8px' }}>
-            {['DESCRIÇÃO', 'QTD', 'UNIT', 'PREÇO UN.', 'TOTAL'].map((h, i) => (
+            {[details?.items.toLocaleUpperCase('pt-BR') ?? 'DESCRIÇÃO', 'QTD', 'UNIT', 'PREÇO UN.', 'TOTAL'].map((h, i) => (
               <div key={h} style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '1px', fontFamily: 'Cabinet Grotesk, sans-serif', color: '#171e19', textAlign: i > 0 ? 'right' : 'left' }}>{h}</div>
             ))}
           </div>
@@ -237,7 +241,7 @@ function LayoutFatura({ company, client, receipt, items, subtotal }) {
               <div style={{ fontSize: '13px', color: '#171e19', paddingRight: '8px', fontWeight: 600 }}>{item.description || <span style={{ color: '#cccccc' }}>—</span>}</div>
               <div style={{ fontSize: '13px', textAlign: 'right', color: '#555' }}>{item.quantity}</div>
               <div style={{ fontSize: '13px', textAlign: 'right', color: '#555' }}>{item.unit}</div>
-              <div style={{ fontSize: '13px', textAlign: 'right', color: '#555' }}>{formatCurrency(item.unitPrice, receipt.currency)}</div>
+              <div style={{ fontSize: '13px', textAlign: 'right', color: '#555' }}>{formatCurrency(details ? Number(item.unitPrice) : item.unitPrice, receipt.currency)}</div>
               <div style={{ fontSize: '13px', textAlign: 'right', fontWeight: 700, color: '#171e19' }}>{formatCurrency(item.quantity * item.unitPrice, receipt.currency)}</div>
             </div>
           ))}
@@ -251,7 +255,7 @@ function LayoutFatura({ company, client, receipt, items, subtotal }) {
               </div>
               <div style={{ height: '2px', background: '#eeeeee', marginBottom: '12px' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontFamily: 'Cabinet Grotesk, sans-serif', fontWeight: 900, fontSize: '16px', color: '#171e19' }}>TOTAL DEVIDO</span>
+                <span style={{ fontFamily: 'Cabinet Grotesk, sans-serif', fontWeight: 900, fontSize: '16px', color: '#171e19' }}>{details?.total.toLocaleUpperCase('pt-BR') ?? 'TOTAL DEVIDO'}</span>
                 <span style={{ fontFamily: 'Cabinet Grotesk, sans-serif', fontWeight: 900, fontSize: '24px', color: '#171e19' }}>{formatCurrency(subtotal, receipt.currency)}</span>
               </div>
           </div>
@@ -278,8 +282,8 @@ function LayoutFatura({ company, client, receipt, items, subtotal }) {
 // -------------------------------------------------------------
 // MODELO COMERCIAL (Proposta / Contrato / Orçamento)
 // -------------------------------------------------------------
-function LayoutComercial({ company, client, receipt, items, subtotal }) {
-  const docTitle = DOC_TYPES[receipt.type] || 'PROPOSTA'
+function LayoutComercial({ company, client, receipt, items, subtotal, details, title }) {
+  const docTitle = title || DOC_TYPES[receipt.type] || 'PROPOSTA'
   return (
     <>
       <div style={{ padding: '64px 48px 32px 48px', textAlign: 'center' }}>
@@ -304,12 +308,12 @@ function LayoutComercial({ company, client, receipt, items, subtotal }) {
               <div style={{ fontFamily: 'Cabinet Grotesk, sans-serif', fontWeight: 800, fontSize: '14px', color: '#171e19', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '1px' }}>Partes Envolvidas</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                  <div>
-                    <div style={{ fontSize: '11px', color: '#888', fontWeight: 700, marginBottom: '4px' }}>CONTRATADA</div>
+                    <div style={{ fontSize: '11px', color: '#888', fontWeight: 700, marginBottom: '4px' }}>{details?.party[0].toLocaleUpperCase('pt-BR') ?? 'CONTRATADA'}</div>
                     <div style={{ fontSize: '14px', fontWeight: 700, color: '#171e19' }}>{company.name || <span style={{ color: '#cccccc' }}>Nome da Empresa</span>}</div>
                     <div style={{ fontSize: '13px', color: '#555' }}>{company.cnpj && `CNPJ: ${company.cnpj}`}</div>
                  </div>
                  <div>
-                    <div style={{ fontSize: '11px', color: '#888', fontWeight: 700, marginBottom: '4px' }}>CONTRATANTE</div>
+                    <div style={{ fontSize: '11px', color: '#888', fontWeight: 700, marginBottom: '4px' }}>{details?.party[1].toLocaleUpperCase('pt-BR') ?? 'CONTRATANTE'}</div>
                     <div style={{ fontSize: '14px', fontWeight: 700, color: '#171e19' }}>{client.name || <span style={{ color: '#cccccc' }}>Nome do Cliente</span>}</div>
                     <div style={{ fontSize: '13px', color: '#555' }}>{client.cpfCnpj && `Doc: ${client.cpfCnpj}`}</div>
                  </div>
@@ -318,14 +322,14 @@ function LayoutComercial({ company, client, receipt, items, subtotal }) {
 
           <div style={{ marginBottom: '40px' }}>
               <div style={{ fontFamily: 'Cabinet Grotesk, sans-serif', fontWeight: 800, fontSize: '16px', color: '#171e19', marginBottom: '16px', borderBottom: '2px solid #171e19', paddingBottom: '8px' }}>
-                 Escopo / Produtos Relacionados
+                 {details?.items ?? 'Escopo / Produtos Relacionados'}
               </div>
               <div style={{ border: '1px solid #eee', borderRadius: '8px', overflow: 'hidden' }}>
                  {items.map((item, idx) => (
                    <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '16px', borderBottom: idx !== items.length - 1 ? '1px solid #eee' : 'none', background: idx % 2 === 0 ? '#fff' : '#fafafa' }}>
                       <div>
                          <div style={{ fontSize: '14px', fontWeight: 700, color: '#171e19', marginBottom: '4px' }}>{item.description || 'Item'}</div>
-                         <div style={{ fontSize: '12px', color: '#888' }}>Qtd: {item.quantity} {item.unit} | Unitário: {formatCurrency(item.unitPrice, receipt.currency)}</div>
+                         <div style={{ fontSize: '12px', color: '#888' }}>Qtd: {item.quantity} {item.unit} | Unitário: {formatCurrency(details ? Number(item.unitPrice) : item.unitPrice, receipt.currency)}</div>
                       </div>
                       <div style={{ fontSize: '15px', fontWeight: 800, color: '#171e19' }}>
                          {formatCurrency(item.quantity * item.unitPrice, receipt.currency)}
@@ -333,7 +337,7 @@ function LayoutComercial({ company, client, receipt, items, subtotal }) {
                    </div>
                  ))}
                  <div style={{ background: '#171e19', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>TOTAL DA PROPOSTA</div>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>{details?.total.toLocaleUpperCase('pt-BR') ?? 'TOTAL DA PROPOSTA'}</div>
                     <div style={{ fontSize: '20px', fontWeight: 900, color: '#ffe17c' }}>{formatCurrency(subtotal, receipt.currency)}</div>
                  </div>
               </div>
@@ -357,13 +361,13 @@ function LayoutComercial({ company, client, receipt, items, subtotal }) {
           <div style={{ marginTop: '80px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px' }}>
               <div style={{ textAlign: 'center' }}>
                  <div style={{ borderTop: '2px solid #171e19', paddingTop: '12px' }}>
-                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#171e19' }}>{company.name || 'CONTRATADA'}</div>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#171e19' }}>{company.name || details?.party[0] || 'CONTRATADA'}</div>
                     <div style={{ fontSize: '12px', color: '#888', marginTop: '4px' }}>Assinatura e Carimbo</div>
                  </div>
               </div>
               <div style={{ textAlign: 'center' }}>
                  <div style={{ borderTop: '2px solid #171e19', paddingTop: '12px' }}>
-                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#171e19' }}>{client.name || 'CONTRATANTE'}</div>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#171e19' }}>{client.name || details?.party[1] || 'CONTRATANTE'}</div>
                     <div style={{ fontSize: '12px', color: '#888', marginTop: '4px' }}>De Acordo</div>
                  </div>
               </div>
@@ -374,8 +378,11 @@ function LayoutComercial({ company, client, receipt, items, subtotal }) {
 }
 
 const ReceiptPreview = forwardRef(function ReceiptPreview({ company, client, receipt, items, subtotal }, ref) {
-  const layoutType = getLayoutType(receipt.type);
-  const props = { company, client, receipt, items, subtotal };
+  const template = templateById[receipt.type]
+  const layoutType = template?.layout ?? getLayoutType(receipt.type)
+  const details = template?.details
+  const title = details ? template.name.toLocaleUpperCase('pt-BR') : undefined
+  const props = { company, client, receipt, items, subtotal, details, title }
 
   return (
     <div

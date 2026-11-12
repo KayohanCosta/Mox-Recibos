@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
+import { templates } from '../src/templates.js'
 
 const wcag = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']
 
@@ -10,12 +11,22 @@ async function checkEditorAccessibility(page) {
   expect(result.violations).toEqual([])
 }
 
-test('filters the seven models and opens the selected document', async ({ page }) => {
+test('searches, filters and opens models in the expanded library', async ({ page }) => {
   await page.goto('/')
-  await expect(page.locator('.model-card')).toHaveCount(7)
+  await expect(page.locator('.model-card')).toHaveCount(42)
   await checkEditorAccessibility(page)
+  const search = page.getByRole('searchbox', { name: 'Buscar modelos' })
+  await search.fill('locacao inexistente')
+  await expect(page.getByRole('status')).toHaveText('Nenhum modelo encontrado.')
+  await search.fill('mensalidade escolar')
+  await expect(page.locator('.model-card')).toHaveCount(1)
+  await expect(page.locator('.model-card')).toContainText('Recibo de mensalidade escolar')
+  await search.fill('CAUCAO')
+  await expect(page.locator('.model-card')).toHaveCount(1)
+  await expect(page.locator('.model-card')).toContainText('Recibo de caução')
+  await search.clear()
   await page.getByRole('button', { name: 'Serviços', exact: true }).click()
-  await expect(page.locator('.model-card')).toHaveCount(2)
+  await expect(page.locator('.model-card')).toHaveCount(6)
   await page.getByRole('button', { name: 'Ordem de serviço' }).click()
   await expect(page.getByRole('heading', { name: 'Ordem de serviço', exact: true })).toBeFocused()
   await page.getByRole('button', { name: 'Documento', exact: true }).click()
@@ -100,12 +111,40 @@ test('keeps the editor usable when browser storage fails', async ({ page }) => {
   await expect(page.getByRole('region', { name: 'Pré-visualização', exact: true })).toContainText('Estúdio Almeida')
 })
 
-for (const [name, type] of [['Recibo', 'recibo'], ['Fatura', 'fatura'], ['Proposta comercial', 'proposta']]) {
-  test(`downloads the existing PDF layout for ${name}`, async ({ page }) => {
+const pdfModels = [
+  ['Recibo', 'recibo'],
+  ['Fatura', 'fatura'],
+  ['Proposta comercial', 'proposta'],
+  ['Recibo de reembolso', 'reembolso', 'Despesas reembolsadas', true],
+  ['Comprovante de entrega', 'comprovante-entrega', 'Itens entregues', false],
+  ['Relatório de serviços', 'relatorio-servicos', 'Atividades realizadas', false],
+  ['Pedido de compra', 'pedido-compra', 'Produtos solicitados', true],
+  ['Proposta de patrocínio', 'proposta-patrocinio', 'Cotas e contrapartidas', true],
+]
+
+for (const [name, type, itemHeading, hasPrices] of pdfModels) {
+  test(`downloads the PDF for ${name}`, async ({ page }) => {
     await page.goto('/')
-    await page.getByRole('button', { name: new RegExp(`^${name}`) }).click()
+    await page.locator('.model-card').filter({ has: page.getByText(name, { exact: true }) }).click()
     await page.getByRole('button', { name: 'Documento', exact: true }).click()
     await page.getByLabel('Número do documento').fill('QA-100')
+    if (itemHeading) {
+      const preview = page.getByRole('region', { name: 'Pré-visualização', exact: true })
+      await expect(page.getByLabel('Forma de pagamento')).toHaveCount(hasPrices ? 1 : 0)
+      await page.getByRole('navigation', { name: 'Seções do editor' }).getByRole('button', { name: 'Itens', exact: true }).click()
+      await expect(page.locator('#section-heading')).toHaveText(itemHeading)
+      await page.getByLabel('Descrição').fill('Item para conferência')
+      await expect(preview.getByText('Item para conferência')).toBeVisible()
+      if (hasPrices) {
+        await page.getByLabel('Valor (BRL)').fill('49.90')
+        await expect(preview.getByText(/49,90/).last()).toBeVisible()
+      } else {
+        await expect(page.getByLabel('Valor (BRL)')).toHaveCount(0)
+        await expect(preview.getByText('PREÇO UN.', { exact: true })).toHaveCount(0)
+        await expect(preview.getByText('PAGAMENTO', { exact: true })).toHaveCount(0)
+      }
+      await checkEditorAccessibility(page)
+    }
     const downloadPromise = page.waitForEvent('download')
     await page.getByRole('button', { name: 'Baixar PDF' }).click()
     const download = await downloadPromise
@@ -116,3 +155,16 @@ for (const [name, type] of [['Recibo', 'recibo'], ['Fatura', 'fatura'], ['Propos
     await expect(page.getByText('Download iniciado.')).toBeVisible()
   })
 }
+
+test('every added model renders in its assigned print layout', async ({ page }) => {
+  await page.goto('/#editor')
+  await page.getByRole('navigation', { name: 'Seções do editor' }).getByRole('button', { name: 'Documento' }).click()
+  const preview = page.getByRole('region', { name: 'Pré-visualização', exact: true })
+  const type = page.getByLabel('Tipo de documento')
+  const layoutMarkers = { recibo: 'Gerado com Easy Recibos', fatura: 'Documento gerado oficialmente por Easy Recibos', comercial: 'Partes Envolvidas' }
+  for (const model of templates.filter(model => model.layout)) {
+    await type.selectOption(model.id)
+    await expect(preview.getByText(model.name.toLocaleUpperCase('pt-BR'), { exact: true })).toBeVisible()
+    await expect(preview.getByText(layoutMarkers[model.layout], { exact: true })).toBeVisible()
+  }
+})

@@ -6,7 +6,7 @@ import ReceiptPreview from './ReceiptPreview.jsx'
 import PreviewPane from './src/PreviewPane.jsx'
 import TemplateLibrary from './src/TemplateLibrary.jsx'
 import useDraft from './src/useDraft.js'
-import { itemTotal, templates } from './src/templates.js'
+import { documentDetails, itemTotal, templates } from './src/templates.js'
 
 const sections = [
   { id: 'empresa', name: 'Empresa', icon: Building2, title: 'Dados da empresa', description: 'Identifique quem emite o documento.' },
@@ -32,6 +32,10 @@ export default function App() {
   const focusOnSectionChange = useRef(false)
   const section = sections[active]
   const template = templates.find(({ id }) => id === draft.receipt.type) ?? templates[0]
+  const details = documentDetails[template.id]
+  const sectionTitle = details
+    ? { empresa: details.party[0], cliente: details.party[1], itens: details.items }[section.id] ?? section.title
+    : section.title
   const subtotal = draft.items.reduce((sum, item) => sum + itemTotal(item), 0)
   const documentProps = { ...draft, subtotal }
 
@@ -141,8 +145,8 @@ export default function App() {
                 ))}
               </nav>
               <div className="section-content">
-                <h2 id="section-heading" tabIndex={-1} ref={sectionHeading}>{section.title}</h2>
-                <p>{section.description}</p>
+                <h2 id="section-heading" tabIndex={-1} ref={sectionHeading}>{sectionTitle}</h2>
+                {sectionTitle === section.title && <p>{section.description}</p>}
                 <FormSection activeTab={section.id} draft={draft} update={update} subtotal={subtotal} />
               </div>
               <div className="section-footer">

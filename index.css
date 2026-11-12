@@ -51,7 +51,12 @@ h1[tabindex]:focus, h2[tabindex]:focus, .preview-column:focus { outline: none; }
 }
 .library h1 { font-size: clamp(34px, 5vw, 52px); line-height: 1.08; letter-spacing: -.062em; }
 .library-intro p { margin-top: 14px; font-size: 16px; color: var(--muted); }
-.filters { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 34px; padding-bottom: 15px; border-bottom: 1px solid var(--line); }
+.model-search { position: relative; max-width: 390px; margin-top: 28px; }
+.model-search svg { position: absolute; top: 13px; left: 12px; color: var(--muted); pointer-events: none; }
+.model-search input { width: 100%; min-height: 44px; padding: 9px 12px 9px 39px; border: 1px solid var(--input-line); border-radius: 8px; background: var(--surface); font-size: 16px; }
+.model-search input::placeholder, .empty-models { color: var(--muted); }
+.empty-models { padding-block: 28px; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 13px; padding-bottom: 15px; border-bottom: 1px solid var(--line); }
 .filters button { border-radius: 7px; padding: 7px 12px; min-height: 36px; color: var(--muted); font-weight: 550; }
 .filters button[aria-pressed=true], .filters button:hover { color: var(--accent-dark); background: var(--accent-soft); }
 .model-group { margin-top: 27px; }

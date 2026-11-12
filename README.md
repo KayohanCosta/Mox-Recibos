@@ -10,7 +10,7 @@ Escolha um modelo na biblioteca, preencha os dados no editor e exporte o documen
 * Criação de faturas e ordens de serviço
 * Emissão de propostas comerciais
 * Modelos de contratos personalizados
-* Biblioteca com categorias Financeiro, Serviços e Comercial
+* Biblioteca com 42 modelos em dez categorias, com busca por nome, descrição ou categoria
 * Visualização em tempo real com zoom e modo expandido
 * Salvamento automático do rascunho e do logo no navegador
 * Exportação para PDF
@@ -35,6 +35,10 @@ Modelos focados em apresentação profissional de serviços e produtos.
 ### Contratos
 
 Estruturas completas com áreas de assinatura e blocos textuais organizados.
+
+### Modelos por área
+
+Além dos modelos originais, a biblioteca inclui recibos de reembolso, aluguel, mensalidades e doações, pedidos de compra, comprovantes de entrega, relatórios de serviços e outros documentos para finanças, vendas, logística, imóveis, educação, eventos, organizações e rotinas administrativas. Cada modelo usa um dos três layouts de impressão do Easy Recibos.
 
 ## 🚀 Tecnologias Utilizadas
 
@@ -90,7 +94,7 @@ npx playwright install chromium
 npm test
 ```
 
-A suíte verifica a biblioteca, os formulários, a recuperação do rascunho, a pré-visualização e o download das três famílias de PDF. O axe verifica a interface e os controles da prévia. O conteúdo dos layouts de impressão legados fica fora da auditoria automatizada.
+A suíte verifica a busca, os formulários, a recuperação do rascunho, a prévia de todos os modelos adicionados e downloads representativos das três famílias de PDF. O axe verifica a interface e os controles da prévia. O conteúdo dos layouts de impressão fica fora da auditoria automatizada.
 
 ## 🎯 Destaques Técnicos
 
