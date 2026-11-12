@@ -230,6 +230,7 @@ button:disabled { cursor: default; opacity: .6; }
 .paper-frame { position: relative; margin-inline: auto; overflow: hidden; background: white; box-shadow: 0 2px 8px #17251c22; }
 .paper { position: absolute; top: 0; left: 0; transform-origin: top left; }
 .pdf-capture { position: fixed; left: -9999px; top: 0; z-index: -1; }
+.document-sheet img { filter: grayscale(1); }
 .preview-dialog { width: min(100% - 24px, 1040px); max-width: none; max-height: calc(100dvh - 24px); border-radius: var(--radius); }
 .preview-dialog::backdrop { background: #14201bc7; }
 .preview-dialog .preview-viewport { max-height: calc(100dvh - 84px); }

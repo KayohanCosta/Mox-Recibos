@@ -158,6 +158,7 @@ for (const [name, type, itemHeading, hasPrices] of pdfModels) {
     await page.locator('.model-card').filter({ has: page.getByText(name, { exact: true }) }).click()
     await page.getByRole('button', { name: 'Documento', exact: true }).click()
     await page.getByLabel('Número do documento').fill('QA-100')
+    if (type === 'fatura') await page.getByLabel('Data de vencimento').fill('2030-01-15')
     if (itemHeading) {
       const preview = page.getByRole('region', { name: 'Pré-visualização', exact: true })
       await expect(page.getByLabel('Forma de pagamento')).toHaveCount(hasPrices ? 1 : 0)
@@ -175,6 +176,19 @@ for (const [name, type, itemHeading, hasPrices] of pdfModels) {
       }
       await checkEditorAccessibility(page)
     }
+    const coloredStyles = await page.locator('.preview-column .paper').evaluate(paper => {
+      return [...paper.querySelectorAll('*')].flatMap(element => {
+        const style = getComputedStyle(element)
+        const borders = ['Top', 'Right', 'Bottom', 'Left']
+          .filter(side => parseFloat(style[`border${side}Width`]) > 0)
+          .map(side => style[`border${side}Color`])
+        return [style.backgroundColor, style.color, ...borders].filter(value => {
+          const [red, green, blue] = value.match(/\d+/g) ?? []
+          return red !== green || green !== blue
+        })
+      })
+    })
+    expect(coloredStyles).toEqual([])
     const downloadPromise = page.waitForEvent('download')
     await page.getByRole('button', { name: 'Baixar PDF' }).click()
     const download = await downloadPromise
@@ -205,6 +219,7 @@ test('receipt uses the Mox logo until a custom logo is uploaded', async ({ page 
   const preview = page.getByRole('region', { name: 'Pré-visualização', exact: true })
   const defaultLogo = preview.getByRole('img', { name: 'Logo da Mox Recibos' })
   await expect(defaultLogo).toHaveAttribute('src', '/mox-recibos.png')
+  await expect(defaultLogo).toHaveCSS('filter', 'grayscale(1)')
   await expect.poll(() => defaultLogo.evaluate(image => image.naturalWidth)).toBeGreaterThan(0)
   await expect(preview.getByRole('link', { name: 'moxr.vercel.app' })).toHaveAttribute('href', 'https://mox-desenvolvimento.vercel.app/')
   await page.getByLabel('Selecionar imagem').setInputFiles({

@@ -1,6 +1,17 @@
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
 
+function convertToGrayscale(canvas) {
+  const context = canvas.getContext('2d')
+  const image = context.getImageData(0, 0, canvas.width, canvas.height)
+  const pixels = image.data
+  for (let index = 0; index < pixels.length; index += 4) {
+    const gray = Math.round(pixels[index] * 0.299 + pixels[index + 1] * 0.587 + pixels[index + 2] * 0.114)
+    pixels[index] = pixels[index + 1] = pixels[index + 2] = gray
+  }
+  context.putImageData(image, 0, 0)
+}
+
 export default async function downloadPDF(element, receipt) {
   const canvas = await html2canvas(element, {
     scale: 2,
@@ -10,6 +21,8 @@ export default async function downloadPDF(element, receipt) {
     width: element.scrollWidth,
     height: element.scrollHeight,
   })
+  // html2canvas does not reliably capture CSS filters on logos.
+  convertToGrayscale(canvas)
   const imgData = canvas.toDataURL('image/png')
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
   const pageWidth = pdf.internal.pageSize.getWidth()

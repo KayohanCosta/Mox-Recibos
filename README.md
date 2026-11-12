@@ -21,7 +21,7 @@ A biblioteca reúne **102 modelos em 15 categorias**, com busca e filtro por ár
 3. Confira a prévia A4. Em telas estreitas, alterne entre **Editar** e **Prévia**. O controle de zoom e o modo expandido ajudam a revisar o documento.
 4. Clique em **Baixar PDF**. O recibo usa o logo da Mox por padrão e exibe o logo do emissor após o upload.
 
-O navegador mantém um rascunho atual, incluindo o logo enviado, por meio do IndexedDB. O rascunho pode ser retomado no mesmo navegador pela biblioteca. A geração de PDF acontece no dispositivo.
+Os três layouts de impressão usam preto, branco e cinza, incluindo os logos na prévia e no PDF. O navegador mantém um rascunho atual, incluindo o logo enviado, por meio do IndexedDB. O rascunho pode ser retomado no mesmo navegador pela biblioteca. A geração de PDF acontece no dispositivo.
 
 ## Rascunhos de contrato
 
