@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises'
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 import { categories, templates } from '../src/templates.js'
+import { createSuggestionHandler, generationError } from '../server/contractSuggestions.js'
 
 const wcag = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']
 
@@ -13,6 +14,8 @@ async function checkEditorAccessibility(page) {
 
 test('searches, filters and opens models in the expanded library', async ({ page }) => {
   await page.goto('/')
+  await expect(page).toHaveTitle(/Mox Recibos/)
+  await expect(page.getByRole('link', { name: 'Mox Recibos' })).toBeVisible()
   await expect(page.locator('.model-card')).toHaveCount(76)
   await checkEditorAccessibility(page)
   const search = page.getByRole('searchbox', { name: 'Buscar modelos' })
@@ -167,7 +170,7 @@ test('every added model renders in its assigned print layout', async ({ page }) 
   await page.getByRole('navigation', { name: 'Seções do editor' }).getByRole('button', { name: 'Documento' }).click()
   const preview = page.getByRole('region', { name: 'Pré-visualização', exact: true })
   const type = page.getByLabel('Tipo de documento')
-  const layoutMarkers = { recibo: 'Gerado com Easy Recibos', fatura: 'Documento gerado oficialmente por Easy Recibos', comercial: 'Partes Envolvidas' }
+  const layoutMarkers = { recibo: 'Gerado com Mox Recibos', fatura: 'Documento gerado oficialmente por Mox Recibos', comercial: 'Partes Envolvidas' }
   for (const model of templates.filter(model => model.layout)) {
     await type.selectOption(model.id)
     await expect(preview.getByText(model.name.toLocaleUpperCase('pt-BR'), { exact: true })).toBeVisible()
@@ -279,4 +282,57 @@ test('keeps existing conditions and renumbers clauses in the generic contract', 
   await section('Documento').click()
   await page.getByLabel('Tipo de documento').selectOption('proposta')
   await expect(preview.getByText('Cláusula 1 · Segunda')).toHaveCount(0)
+})
+
+test('reviews and inserts only the selected suggestions without sending draft data', async ({ page }) => {
+  const clauses = [
+    { title: 'Entregas', text: 'Descreva as etapas combinadas.' },
+    { title: 'Revisões', text: 'Descreva a conferência combinada.' },
+  ]
+  await page.route('**/api/clauses', async route => {
+    expect(route.request().postDataJSON()).toEqual({ type: 'contrato-locacao-residencial' })
+    await route.fulfill({ json: { clauses } })
+  })
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/#contratos')
+  await page.getByRole('button', { name: /^Contrato de locação residencial/ }).click()
+  await page.getByLabel('Nome ou razão social').fill('Nome privado do locador')
+  await page.getByRole('navigation', { name: 'Seções do editor' }).getByRole('button', { name: 'Cláusulas' }).click()
+  await page.getByLabel('Escopo ou entrega').fill('Dados do imóvel que devem ficar no navegador.')
+  const suggest = page.getByRole('button', { name: 'Sugerir cláusulas', exact: true })
+  await suggest.click()
+  const review = page.getByRole('region', { name: 'Revise as sugestões' })
+  await expect(review.getByRole('heading')).toBeFocused()
+  await expect(page.getByRole('group', { name: 'Cláusula 1' })).toHaveCount(0)
+  await review.getByRole('checkbox', { name: /Revisões/ }).uncheck()
+  await checkEditorAccessibility(page)
+  await review.getByRole('button', { name: 'Inserir selecionadas' }).click()
+  await expect(suggest).toBeFocused()
+  await expect(page.getByRole('group', { name: 'Cláusula 1' }).getByLabel('Título')).toHaveValue('Entregas')
+  await expect(page.getByRole('group', { name: 'Cláusula 2' })).toHaveCount(0)
+  await expect(page.getByRole('region', { name: 'Pré-visualização', exact: true }).getByText('Cláusula 1 · Entregas')).toBeVisible()
+})
+
+test('server uses the free model for contracts and keeps suggestions usable during quota limits', async () => {
+  const post = (type, origin = 'https://mox.example') => new Request('https://mox.example/api/clauses', {
+    method: 'POST',
+    headers: { origin, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type }),
+  })
+  let calls = 0
+  const suggest = createSuggestionHandler(async input => {
+    calls++
+    expect(input.model).toEqual({ providerID: 'opencode', id: 'minimax-m3.1-flash-free' })
+    expect(input.prompt).toContain('Contrato de locação residencial')
+    return { text: '[{"title":"Escopo","text":"Preencha o escopo combinado."}]' }
+  })
+  expect((await suggest(post('recibo'))).status).toBe(400)
+  expect((await suggest(post('contrato', 'https://elsewhere.example'))).status).toBe(403)
+  const [first, second] = await Promise.all([suggest(post('contrato-locacao-residencial')), suggest(post('contrato-locacao-residencial'))])
+  expect(await first.json()).toEqual(await second.json())
+  expect(calls).toBe(1)
+  const quota = createSuggestionHandler(async () => { throw generationError({ retryAfterMs: 60000 }) })
+  const fallback = await quota(post('contrato'))
+  expect(fallback.status).toBe(200)
+  expect((await fallback.json()).clauses).toHaveLength(3)
 })

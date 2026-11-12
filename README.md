@@ -1,4 +1,4 @@
-# 📄 Easy Recibos
+# 📄 Mox Recibos
 
 Uma plataforma moderna para criação, personalização e exportação de recibos, faturas, propostas comerciais, contratos e ordens de serviço.
 
@@ -38,7 +38,7 @@ Modelos no layout comercial com identificação das partes, escopo, valores, vig
 
 ### Modelos por área
 
-Além dos modelos originais, a biblioteca inclui recibos de reembolso, aluguel, mensalidades e doações, pedidos de compra, comprovantes de entrega, relatórios de serviços e outros documentos para finanças, vendas, logística, imóveis, educação, eventos, organizações e rotinas administrativas. Cada modelo usa um dos três layouts de impressão do Easy Recibos.
+Além dos modelos originais, a biblioteca inclui recibos de reembolso, aluguel, mensalidades e doações, pedidos de compra, comprovantes de entrega, relatórios de serviços e outros documentos para finanças, vendas, logística, imóveis, educação, eventos, organizações e rotinas administrativas. Cada modelo usa um dos três layouts de impressão do Mox Recibos.
 
 Hospedagem, transporte, esportes, tecnologia e produção criativa também têm modelos específicos, como confirmação de reserva, registro de coleta, mensalidade esportiva, aceite de software e orçamento de fotografia.
 
@@ -76,6 +76,12 @@ npm install
 ```bash id="qzv8jm"
 npm run dev
 ```
+
+O editor inclui a ação **Sugerir cláusulas**. Ela envia ao servidor somente o identificador público do modelo e abre uma seleção para revisão antes de inserir texto no contrato. A prévia e a edição manual funcionam no navegador.
+
+### Configuração do servidor
+
+Para geração local, o responsável pelo projeto pode definir `OPENCODE_API_KEY` em `.env.local`. O servidor de desenvolvimento usa a CLI oficial do OpenCode. Em produção, a função `/api/clauses` usa um servidor OpenCode v2 dedicado, acessível por HTTPS, com `OPENCODE_SERVER_URL` e `OPENCODE_PASSWORD` configurados como variáveis privadas do projeto. A credencial do provedor fica no processo OpenCode. O modelo selecionado é `opencode/minimax-m3.1-flash-free`. Quando o serviço não está disponível, o editor apresenta textos-base editáveis.
 
 A aplicação estará disponível em:
 

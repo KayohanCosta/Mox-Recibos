@@ -17,6 +17,7 @@ export default function TemplateLibrary({ showContracts, onSelect, onResume, sav
           normalize(`${template.name} ${template.description} ${category.label}`).includes(term))),
     }))
     .filter(({ models }) => models.length > 0)
+  const matches = visibleCategories.reduce((count, { models }) => count + models.length, 0)
 
   return (
     <main className="library layout-width" id="main-content">
@@ -54,7 +55,19 @@ export default function TemplateLibrary({ showContracts, onSelect, onResume, sav
         </div>
       </div>
 
-      {visibleCategories.length === 0 && <p className="empty-models" role="status">Nenhum modelo encontrado.</p>}
+      {(filter !== 'todos' || terms.length > 0) && matches > 0 && (
+        <p className="model-results" aria-live="polite">{matches} {matches === 1 ? 'modelo encontrado' : 'modelos encontrados'}</p>
+      )}
+      {matches === 0 && (
+        <div className="empty-models">
+          <p role="status">Nenhum modelo encontrado.</p>
+          <button type="button" className="button" onClick={() => {
+            setSearch('')
+            setFilter('todos')
+            document.getElementById('template-search')?.focus()
+          }}>Limpar filtros</button>
+        </div>
+      )}
       {visibleCategories.map(({ id, label, models }) => (
         <section key={id} className="model-group" aria-labelledby={id}>
           <h2 id={id}>{label}</h2>

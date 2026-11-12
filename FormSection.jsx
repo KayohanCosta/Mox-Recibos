@@ -1,6 +1,7 @@
 import { useId, useState } from 'react'
 import { ImagePlus, Plus, Trash2 } from 'lucide-react'
 import ActionHelp from './src/ActionHelp.jsx'
+import ClauseSuggestions from './src/ClauseSuggestions.jsx'
 import { categories, documentDetails, itemTotal, money, newItem, templates } from './src/templates.js'
 
 const paymentOptions = [
@@ -242,6 +243,13 @@ function ClauseFields({ receipt, update }) {
           changeClauses(current => [...current, { id, title: '', text: '' }])
         }}><Plus size={16} aria-hidden="true" /> Adicionar cláusula</button>
       </ActionHelp>
+      <ClauseSuggestions key={receipt.type} type={receipt.type} onInsert={suggestions => {
+        const additions = suggestions.map(clause => ({ ...clause, id: crypto.randomUUID() }))
+        changeClauses(current => [
+          ...current,
+          ...additions.filter(clause => !current.some(existing => existing.title.trim() === clause.title && existing.text.trim() === clause.text)),
+        ])
+      }} />
       <Field label="Condições gerais" type="textarea" value={receipt.notes}
         onChange={notes => update(current => ({ ...current, notes }))}
         placeholder="Informações adicionais acordadas entre as partes" />

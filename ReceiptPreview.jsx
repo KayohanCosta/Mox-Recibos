@@ -157,7 +157,7 @@ function LayoutRecibo({ company, client, receipt, items, subtotal, details, titl
 
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: '#ffe17c', padding: '12px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ fontSize: '11px', fontFamily: 'Cabinet Grotesk, sans-serif', fontWeight: 700, color: '#171e19' }}>{docTitle} #{receipt.number}</span>
-        <span style={{ fontSize: '11px', color: '#333333' }}>Gerado com Easy Recibos</span>
+        <span style={{ fontSize: '11px', color: '#333333' }}>Gerado com Mox Recibos</span>
         <span style={{ fontSize: '11px', fontWeight: 600, color: '#333333' }}>{formatDate(receipt.date)}</span>
       </div>
     </>
@@ -273,7 +273,7 @@ function LayoutFatura({ company, client, receipt, items, subtotal, details, titl
 
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: '#171e19', padding: '16px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ fontSize: '12px', fontFamily: 'Cabinet Grotesk, sans-serif', fontWeight: 700, color: '#ffffff' }}>{docTitle} #{receipt.number}</span>
-        <span style={{ fontSize: '12px', color: '#888888' }}>Documento gerado oficialmente por Easy Recibos</span>
+        <span style={{ fontSize: '12px', color: '#888888' }}>Documento gerado oficialmente por Mox Recibos</span>
       </div>
     </>
   )

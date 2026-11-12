@@ -1,12 +1,12 @@
-import { ArrowRight, LayoutGrid, Receipt } from 'lucide-react'
+import { ArrowRight, LayoutGrid } from 'lucide-react'
 
 export default function Navbar({ editor, onNavigate }) {
   return (
     <header className="topbar">
       <div className="topbar-inner">
         <a className="brand" href="#modelos" onClick={(event) => { event.preventDefault(); onNavigate('modelos') }}>
-          <span className="brand-mark"><Receipt size={18} aria-hidden="true" /></span>
-          Easy Recibos
+          <img className="brand-mark" src="/mox-recibos.png" alt="" width="35" height="33" />
+          Mox Recibos
         </a>
         <nav aria-label="Navegação principal">
           <a href="#modelos" aria-current={!editor ? 'page' : undefined}
