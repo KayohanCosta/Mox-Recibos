@@ -2,7 +2,7 @@
 
 Uma plataforma moderna para criação, personalização e exportação de recibos, faturas, propostas comerciais, contratos e ordens de serviço.
 
-Desenvolvido com foco em produtividade, experiência do usuário e design Neo-Brutalista, o Easy Recibos permite gerar documentos profissionais em poucos minutos através de uma interface intuitiva e visualmente sofisticada.
+Escolha um modelo na biblioteca, preencha os dados no editor e exporte o documento em PDF. O rascunho atual é salvo no navegador e pode ser retomado pela biblioteca.
 
 ## ✨ Principais Funcionalidades
 
@@ -10,23 +10,13 @@ Desenvolvido com foco em produtividade, experiência do usuário e design Neo-Br
 * Criação de faturas e ordens de serviço
 * Emissão de propostas comerciais
 * Modelos de contratos personalizados
-* Visualização em tempo real
+* Biblioteca com categorias Financeiro, Serviços e Comercial
+* Visualização em tempo real com zoom e modo expandido
+* Salvamento automático do rascunho e do logo no navegador
 * Exportação para PDF
 * Interface moderna e responsiva
 * Experiência otimizada para desktop e dispositivos móveis
 * Sistema de layouts adaptativos conforme o tipo de documento
-
-## 🎨 Design Neo-Brutalista
-
-O projeto foi construído utilizando princípios modernos de Neo-Brutalismo, combinando:
-
-* Tipografia forte e marcante
-* Bordas destacadas
-* Sombras rígidas
-* Cores vibrantes
-* Interface premium inspirada em produtos SaaS modernos
-
-O resultado é uma experiência visual diferenciada que transmite profissionalismo e personalidade.
 
 ## 📄 Tipos de Documentos Suportados
 
@@ -65,7 +55,7 @@ Estruturas completas com áreas de assinatura e blocos textuais organizados.
 
 ### Ícones
 
-* Iconify
+* Lucide no editor e Iconify nos documentos
 
 ## ⚙️ Como Executar o Projeto
 
@@ -92,6 +82,15 @@ http://localhost:5173
 ```bash id="yvrv45"
 npm run build
 ```
+
+## Testes do editor
+
+```bash
+npx playwright install chromium
+npm test
+```
+
+A suíte verifica a biblioteca, os formulários, a recuperação do rascunho, a pré-visualização e o download das três famílias de PDF. O axe verifica a interface e os controles da prévia. O conteúdo dos layouts de impressão legados fica fora da auditoria automatizada.
 
 ## 🎯 Destaques Técnicos
 
