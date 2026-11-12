@@ -13,7 +13,7 @@ async function checkEditorAccessibility(page) {
 
 test('searches, filters and opens models in the expanded library', async ({ page }) => {
   await page.goto('/')
-  await expect(page.locator('.model-card')).toHaveCount(42)
+  await expect(page.locator('.model-card')).toHaveCount(67)
   await checkEditorAccessibility(page)
   const search = page.getByRole('searchbox', { name: 'Buscar modelos' })
   await search.fill('locacao inexistente')
@@ -25,6 +25,8 @@ test('searches, filters and opens models in the expanded library', async ({ page
   await expect(page.locator('.model-card')).toHaveCount(1)
   await expect(page.locator('.model-card')).toContainText('Recibo de caução')
   await search.clear()
+  await page.getByRole('button', { name: 'Hospedagem', exact: true }).click()
+  await expect(page.locator('.model-card')).toHaveCount(5)
   await page.getByRole('button', { name: 'Serviços', exact: true }).click()
   await expect(page.locator('.model-card')).toHaveCount(6)
   await page.getByRole('button', { name: 'Ordem de serviço' }).click()
@@ -120,6 +122,9 @@ const pdfModels = [
   ['Relatório de serviços', 'relatorio-servicos', 'Atividades realizadas', false],
   ['Pedido de compra', 'pedido-compra', 'Produtos solicitados', true],
   ['Proposta de patrocínio', 'proposta-patrocinio', 'Cotas e contrapartidas', true],
+  ['Confirmação de reserva de hospedagem', 'confirmacao-reserva-hospedagem', 'Acomodações reservadas', false],
+  ['Demonstrativo de despesas de transporte', 'demonstrativo-despesas-transporte', 'Despesas de transporte', true],
+  ['Orçamento de fotografia', 'orcamento-fotografia', 'Sessões e entregas', true],
 ]
 
 for (const [name, type, itemHeading, hasPrices] of pdfModels) {

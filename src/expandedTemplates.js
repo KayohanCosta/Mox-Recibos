@@ -1,4 +1,4 @@
-import { BriefcaseBusiness, Building2, CalendarDays, ClipboardList, GraduationCap, HeartHandshake, House, PackageCheck, Receipt, ShoppingBag, Wrench } from 'lucide-react'
+import { BedDouble, BriefcaseBusiness, Building2, CalendarDays, ClipboardList, Dumbbell, GraduationCap, HeartHandshake, House, Laptop, PackageCheck, Palette, Receipt, ShoppingBag, Truck, Wrench } from 'lucide-react'
 
 // Each model uses one of the existing print layouts. A total enables monetary fields.
 const groups = [
@@ -75,6 +75,63 @@ const groups = [
       ['entrega-equipamentos', 'Termo de entrega de equipamentos', 'Registre os equipamentos entregues a uma pessoa ou equipe.', 'Responsável pela entrega', 'Responsável pelos equipamentos', 'Equipamentos entregues'],
       ['emprestimo-bens', 'Termo de empréstimo de bens', 'Relacione os bens emprestados e quem os recebeu.', 'Responsável pelos bens', 'Pessoa que recebeu os bens', 'Bens emprestados'],
       ['relatorio-atividades', 'Relatório de atividades', 'Organize atividades e resultados de uma equipe ou projeto.', 'Responsável pelo relatório', 'Destinatário', 'Atividades e resultados'],
+    ],
+  },
+  {
+    category: 'hospedagem', layout: 'recibo', icon: BedDouble, models: [
+      ['recibo-hospedagem', 'Recibo de hospedagem', 'Registre o pagamento de diárias, taxas e serviços da estadia.', 'Estabelecimento', 'Hóspede ou responsável', 'Diárias e serviços', 'Total recebido'],
+      ['confirmacao-reserva-hospedagem', 'Confirmação de reserva de hospedagem', 'Confirme acomodações e informe o período da reserva nas observações.', 'Estabelecimento', 'Hóspede ou responsável', 'Acomodações reservadas'],
+      ['recibo-sinal-hospedagem', 'Recibo de sinal de hospedagem', 'Identifique a reserva e o sinal recebido para garanti-la.', 'Estabelecimento', 'Hóspede ou responsável', 'Sinal recebido', 'Total recebido'],
+      ['registro-inspecao-acomodacao', 'Registro de inspeção de acomodação', 'Relacione itens conferidos na entrada ou saída do hóspede.', 'Responsável pela inspeção', 'Hóspede ou responsável', 'Itens conferidos'],
+    ],
+  },
+  {
+    category: 'hospedagem', layout: 'fatura', icon: BedDouble, models: [
+      ['demonstrativo-extras-hospedagem', 'Demonstrativo de despesas da estadia', 'Detalhe consumos e serviços adicionais cobrados durante a hospedagem.', 'Estabelecimento', 'Hóspede ou responsável', 'Despesas da estadia', 'Total das despesas'],
+    ],
+  },
+  {
+    category: 'transporte', layout: 'recibo', icon: Truck, models: [
+      ['recibo-frete', 'Recibo de frete', 'Registre o pagamento do frete e identifique a carga transportada.', 'Transportador', 'Contratante do frete', 'Fretes pagos', 'Total recebido'],
+      ['recibo-estacionamento', 'Recibo de estacionamento', 'Registre o pagamento e informe placa e período nas observações.', 'Operador do estacionamento', 'Responsável pelo veículo', 'Períodos e serviços', 'Total recebido'],
+      ['registro-coleta-carga', 'Registro de coleta de carga', 'Identifique os volumes coletados para transporte.', 'Transportador', 'Responsável pela expedição', 'Volumes coletados'],
+      ['relatorio-viagem', 'Relatório de viagem a serviço', 'Relacione deslocamentos e atividades realizadas na viagem.', 'Responsável pela viagem', 'Solicitante', 'Deslocamentos e atividades'],
+    ],
+  },
+  {
+    category: 'transporte', layout: 'fatura', icon: Truck, models: [
+      ['demonstrativo-despesas-transporte', 'Demonstrativo de despesas de transporte', 'Discrimine combustível, pedágios, passagens e outros custos de deslocamento.', 'Responsável pelas despesas', 'Responsável pela conferência', 'Despesas de transporte', 'Total das despesas'],
+    ],
+  },
+  {
+    category: 'esportes', layout: 'recibo', icon: Dumbbell, models: [
+      ['recibo-mensalidade-esportiva', 'Recibo de mensalidade esportiva', 'Registre pagamentos de mensalidades de academias, clubes ou escolinhas.', 'Organização esportiva', 'Aluno ou responsável', 'Mensalidades pagas', 'Total recebido'],
+      ['recibo-taxa-competicao', 'Recibo de taxa de competição', 'Comprove o recebimento da inscrição de atletas ou equipes.', 'Organização da competição', 'Atleta ou responsável pela equipe', 'Taxas pagas', 'Total recebido'],
+      ['recibo-locacao-quadra', 'Recibo de locação de quadra', 'Registre o pagamento pela reserva de uma instalação esportiva.', 'Responsável pela instalação', 'Responsável pela reserva', 'Horários e espaços locados', 'Total recebido'],
+      ['entrega-kit-esportivo', 'Comprovante de entrega de kit esportivo', 'Relacione uniformes, acessórios ou materiais entregues aos participantes.', 'Responsável pela entrega', 'Atleta ou responsável', 'Materiais entregues'],
+      ['registro-sessoes-treino', 'Registro de sessões de treino', 'Relacione sessões realizadas e observações sobre o acompanhamento.', 'Treinador ou instrutor', 'Atleta ou equipe', 'Sessões realizadas'],
+    ],
+  },
+  {
+    category: 'tecnologia', layout: 'recibo', icon: Laptop, models: [
+      ['relatorio-suporte-ti', 'Relatório de atendimento de TI', 'Documente chamados atendidos, ações executadas e resultados.', 'Equipe de suporte', 'Solicitante', 'Chamados e ações realizadas'],
+      ['aceite-entrega-software', 'Termo de aceite de entrega de software', 'Relacione funcionalidades e versões apresentadas para conferência.', 'Equipe responsável pela entrega', 'Responsável pelo aceite', 'Funcionalidades e versões entregues'],
+      ['registro-inventario-ti', 'Registro de inventário de TI', 'Liste equipamentos, licenças ou ativos conferidos.', 'Equipe de TI', 'Unidade responsável', 'Ativos conferidos'],
+    ],
+  },
+  {
+    category: 'tecnologia', layout: 'comercial', icon: Laptop, models: [
+      ['proposta-desenvolvimento-software', 'Proposta de desenvolvimento de software', 'Apresente etapas, funcionalidades, entregas e investimento do projeto.', 'Equipe de desenvolvimento', 'Cliente', 'Etapas e funcionalidades', 'Total da proposta'],
+      ['proposta-implantacao-sistema', 'Proposta de implantação de sistema', 'Detalhe migração, configuração, treinamento e acompanhamento.', 'Responsável pela implantação', 'Cliente', 'Etapas de implantação', 'Total da proposta'],
+    ],
+  },
+  {
+    category: 'criativo', layout: 'comercial', icon: Palette, models: [
+      ['orcamento-fotografia', 'Orçamento de fotografia', 'Estime sessões, tratamento de imagens e formatos de entrega.', 'Fotógrafo ou estúdio', 'Cliente', 'Sessões e entregas', 'Total estimado'],
+      ['proposta-identidade-visual', 'Proposta de identidade visual', 'Apresente etapas de criação, peças e materiais da marca.', 'Designer ou estúdio', 'Cliente', 'Etapas e peças previstas', 'Total da proposta'],
+      ['proposta-producao-audiovisual', 'Proposta de produção audiovisual', 'Detalhe roteiro, captação, edição e arquivos finais.', 'Produtora ou profissional', 'Cliente', 'Etapas de produção e entregas', 'Total da proposta'],
+      ['orcamento-edicao-video', 'Orçamento de edição de vídeo', 'Estime montagem, revisões, legendagem e versões finais.', 'Editor ou estúdio', 'Cliente', 'Serviços de edição', 'Total estimado'],
+      ['orcamento-impressao-grafica', 'Orçamento de impressão gráfica', 'Especifique tiragens, acabamentos e valores de materiais impressos.', 'Gráfica ou fornecedor', 'Cliente', 'Tiragens e acabamentos', 'Total estimado'],
     ],
   },
 ]

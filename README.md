@@ -10,7 +10,7 @@ Escolha um modelo na biblioteca, preencha os dados no editor e exporte o documen
 * Criação de faturas e ordens de serviço
 * Emissão de propostas comerciais
 * Modelos de contratos personalizados
-* Biblioteca com 42 modelos em dez categorias, com busca por nome, descrição ou categoria
+* Biblioteca com 67 modelos em 15 categorias, com busca por nome, descrição ou categoria
 * Visualização em tempo real com zoom e modo expandido
 * Salvamento automático do rascunho e do logo no navegador
 * Exportação para PDF
@@ -39,6 +39,8 @@ Estruturas completas com áreas de assinatura e blocos textuais organizados.
 ### Modelos por área
 
 Além dos modelos originais, a biblioteca inclui recibos de reembolso, aluguel, mensalidades e doações, pedidos de compra, comprovantes de entrega, relatórios de serviços e outros documentos para finanças, vendas, logística, imóveis, educação, eventos, organizações e rotinas administrativas. Cada modelo usa um dos três layouts de impressão do Easy Recibos.
+
+Hospedagem, transporte, esportes, tecnologia e produção criativa também têm modelos específicos, como confirmação de reserva, registro de coleta, mensalidade esportiva, aceite de software e orçamento de fotografia.
 
 ## 🚀 Tecnologias Utilizadas
 

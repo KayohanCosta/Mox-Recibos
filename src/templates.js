@@ -12,6 +12,11 @@ export const categories = [
   { id: 'eventos', label: 'Eventos' },
   { id: 'organizacoes', label: 'Organizações' },
   { id: 'administrativo', label: 'Administrativo' },
+  { id: 'hospedagem', label: 'Hospedagem' },
+  { id: 'transporte', label: 'Transporte' },
+  { id: 'esportes', label: 'Esportes' },
+  { id: 'tecnologia', label: 'Tecnologia' },
+  { id: 'criativo', label: 'Produção criativa' },
 ]
 
 export const templates = [
