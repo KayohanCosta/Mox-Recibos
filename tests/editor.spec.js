@@ -182,6 +182,7 @@ for (const [name, type, itemHeading, hasPrices] of pdfModels) {
     const bytes = await readFile(await download.path())
     expect(bytes.subarray(0, 5).toString()).toBe('%PDF-')
     expect(bytes.toString('latin1')).toMatch(/\/Count 1\b/)
+    if (type === 'recibo') expect(bytes.toString('latin1')).toContain('/URI (https://mox-desenvolvimento.vercel.app/)')
     await expect(page.getByText('Download iniciado.')).toBeVisible()
   })
 }
@@ -191,12 +192,30 @@ test('every added model renders in its assigned print layout', async ({ page }) 
   await page.getByRole('navigation', { name: 'Seções do editor' }).getByRole('button', { name: 'Documento' }).click()
   const preview = page.getByRole('region', { name: 'Pré-visualização', exact: true })
   const type = page.getByLabel('Tipo de documento')
-  const layoutMarkers = { recibo: 'Gerado com Mox Recibos', fatura: 'Documento gerado oficialmente por Mox Recibos', comercial: 'Partes Envolvidas' }
+  const layoutMarkers = { recibo: 'moxr.vercel.app', fatura: 'Documento gerado oficialmente por Mox Recibos', comercial: 'Partes Envolvidas' }
   for (const model of templates.filter(model => model.layout)) {
     await type.selectOption(model.id)
     await expect(preview.getByText(model.name.toLocaleUpperCase('pt-BR'), { exact: true })).toBeVisible()
     await expect(preview.getByText(layoutMarkers[model.layout], { exact: true })).toBeVisible()
   }
+})
+
+test('receipt uses the Mox logo until a custom logo is uploaded', async ({ page }) => {
+  await page.goto('/#editor')
+  const preview = page.getByRole('region', { name: 'Pré-visualização', exact: true })
+  const defaultLogo = preview.getByRole('img', { name: 'Logo da Mox Recibos' })
+  await expect(defaultLogo).toHaveAttribute('src', '/mox-recibos.png')
+  await expect.poll(() => defaultLogo.evaluate(image => image.naturalWidth)).toBeGreaterThan(0)
+  await expect(preview.getByRole('link', { name: 'moxr.vercel.app' })).toHaveAttribute('href', 'https://mox-desenvolvimento.vercel.app/')
+  await page.getByLabel('Selecionar imagem').setInputFiles({
+    name: 'logo.svg',
+    mimeType: 'image/svg+xml',
+    buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="40" height="40" fill="#222"/></svg>'),
+  })
+  await expect(preview.getByRole('img', { name: 'Logo do emissor' })).toBeVisible()
+  await expect(defaultLogo).toHaveCount(0)
+  await page.getByRole('button', { name: 'Remover logo' }).click()
+  await expect(defaultLogo).toBeVisible()
 })
 
 test('offers contracts in every category and exports clauses and validity', async ({ page }) => {

@@ -137,7 +137,7 @@ export default function App() {
         document.querySelector('#main-content h1')?.focus()
       }}>Ir para o conteúdo</a>
       <Navbar editor={editor} onNavigate={navigate} />
-      <div className="pdf-capture" aria-hidden="true">
+      <div className="pdf-capture" aria-hidden="true" inert>
         <ReceiptPreview {...(exportDocument ?? documentProps)} ref={capture} />
       </div>
       {status === 'loading' ? (

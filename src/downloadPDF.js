@@ -26,5 +26,16 @@ export default async function downloadPDF(element, receipt) {
     pdf.addImage(imgData, 'PNG', 0, position, pageWidth, imgHeight)
     heightLeft -= pageHeight
   }
+
+  const bounds = element.getBoundingClientRect()
+  const scale = pageWidth / element.scrollWidth
+  for (const link of element.querySelectorAll('a[data-pdf-link]')) {
+    const rect = link.getBoundingClientRect()
+    const top = (rect.top - bounds.top) * scale
+    const page = Math.floor(top / pageHeight) + 1
+    if (page > pdf.getNumberOfPages()) continue
+    pdf.setPage(page)
+    pdf.link((rect.left - bounds.left) * scale, top % pageHeight, rect.width * scale, rect.height * scale, { url: link.href })
+  }
   pdf.save(`${receipt.type}-${receipt.number}.pdf`)
 }
