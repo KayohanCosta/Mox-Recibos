@@ -6,6 +6,7 @@ import Navbar from './Navbar.jsx'
 import ReceiptPreview from './ReceiptPreview.jsx'
 import PreviewPane from './src/PreviewPane.jsx'
 import TemplateLibrary from './src/TemplateLibrary.jsx'
+import LibraryFooter from './src/LibraryFooter.jsx'
 import useDraft from './src/useDraft.js'
 import { documentDetails, isContract, itemTotal, templates } from './src/templates.js'
 
@@ -206,8 +207,13 @@ export default function App() {
             </div>
           </div>
         </main>
-      ) : <TemplateLibrary key={page} showContracts={page === 'contratos'} onSelect={selectTemplate}
-        onResume={() => navigate('editor')} saved={saved} current={draft.receipt.type} />}
+      ) : (
+        <>
+          <TemplateLibrary key={page} showContracts={page === 'contratos'} onSelect={selectTemplate}
+            onResume={() => navigate('editor')} saved={saved} current={draft.receipt.type} />
+          <LibraryFooter />
+        </>
+      )}
     </>
   )
 }
